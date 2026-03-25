@@ -33,10 +33,13 @@ export function StudioDashboard() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-4 px-4 py-8 sm:px-6">
-      <header className="rounded-xl border border-white/15 bg-white/5 p-5 backdrop-blur-xl">
-        <h1 className="text-2xl font-semibold text-white sm:text-3xl">FixYourSound</h1>
-        <p className="mt-1 text-sm text-slate-300">
-          Semantic DSP engine: write human language, hear real-time mastering changes.
+      <header className="rounded-2xl border border-white/5 bg-[#0a0a0a]/60 p-8 backdrop-blur-2xl shadow-2xl relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#00f5d4]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+        <h1 className="text-3xl font-black text-white sm:text-4xl tracking-tighter">
+          FIX YOUR <span className="text-[#00f5d4] drop-shadow-[0_0_15px_rgba(0,245,212,0.3)]">SOUND</span>
+        </h1>
+        <p className="mt-2 text-sm text-white/40 font-medium max-w-lg leading-relaxed">
+          Professional Semantic DSP Engine. Translate your creative intuition into high-fidelity audio engineering.
         </p>
       </header>
 

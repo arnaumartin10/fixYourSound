@@ -125,7 +125,7 @@ export function FrequencyVisualizer({
 
     drawSpectrum(dryFftValues, "rgba(100, 116, 139, 0.45)", "transparent", false);
     if (hasPrompt) {
-      drawSpectrum(processedFftValues, "rgba(34, 211, 238, 1)", "rgba(34, 211, 238, 0.3)", true);
+      drawSpectrum(processedFftValues, "rgba(0, 245, 212, 1)", "rgba(0, 245, 212, 0.4)", true);
       drawEQCurve();
     }
 

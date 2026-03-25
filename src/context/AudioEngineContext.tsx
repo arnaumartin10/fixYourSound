@@ -226,46 +226,62 @@ export function AudioEngineProvider({ children }: { children: React.ReactNode })
 
     const now = Tone.now();
 
-    bandChain.lowShelf.frequency.rampTo(state.lowShelf.frequency, RAMP_SECONDS, now);
-    bandChain.lowShelf.gain.rampTo(state.lowShelf.gain, RAMP_SECONDS, now);
-    bandChain.lowShelf.Q.rampTo(state.lowShelf.q, RAMP_SECONDS, now);
+    const safeRamp = (param: any, value: any, duration: number) => {
+      const num = Number(value);
+      if (Number.isFinite(num) && param && typeof param.rampTo === 'function') {
+        param.rampTo(num, duration, now);
+      }
+    };
 
-    bandChain.peaking1.frequency.rampTo(state.peaking1.frequency, RAMP_SECONDS, now);
-    bandChain.peaking1.gain.rampTo(state.peaking1.gain, RAMP_SECONDS, now);
-    bandChain.peaking1.Q.rampTo(state.peaking1.q, RAMP_SECONDS, now);
+    safeRamp(bandChain.lowShelf.frequency, state.lowShelf.frequency, RAMP_SECONDS);
+    safeRamp(bandChain.lowShelf.gain, state.lowShelf.gain, RAMP_SECONDS);
+    safeRamp(bandChain.lowShelf.Q, state.lowShelf.q, RAMP_SECONDS);
 
-    bandChain.boxyNotch.frequency.rampTo(state.boxyNotch.frequency, RAMP_SECONDS, now);
-    bandChain.boxyNotch.gain.rampTo(state.boxyNotch.gain, RAMP_SECONDS, now);
-    bandChain.boxyNotch.Q.rampTo(state.boxyNotch.q, RAMP_SECONDS, now);
+    safeRamp(bandChain.peaking1.frequency, state.peaking1.frequency, RAMP_SECONDS);
+    safeRamp(bandChain.peaking1.gain, state.peaking1.gain, RAMP_SECONDS);
+    safeRamp(bandChain.peaking1.Q, state.peaking1.q, RAMP_SECONDS);
 
-    bandChain.peaking2.frequency.rampTo(state.peaking2.frequency, RAMP_SECONDS, now);
-    bandChain.peaking2.gain.rampTo(state.peaking2.gain, RAMP_SECONDS, now);
-    bandChain.peaking2.Q.rampTo(state.peaking2.q, RAMP_SECONDS, now);
+    safeRamp(bandChain.boxyNotch.frequency, state.boxyNotch.frequency, RAMP_SECONDS);
+    safeRamp(bandChain.boxyNotch.gain, state.boxyNotch.gain, RAMP_SECONDS);
+    safeRamp(bandChain.boxyNotch.Q, state.boxyNotch.q, RAMP_SECONDS);
 
-    bandChain.peaking3.frequency.rampTo(state.peaking3.frequency, RAMP_SECONDS, now);
-    bandChain.peaking3.gain.rampTo(state.peaking3.gain, RAMP_SECONDS, now);
-    bandChain.peaking3.Q.rampTo(state.peaking3.q, RAMP_SECONDS, now);
+    safeRamp(bandChain.peaking2.frequency, state.peaking2.frequency, RAMP_SECONDS);
+    safeRamp(bandChain.peaking2.gain, state.peaking2.gain, RAMP_SECONDS);
+    safeRamp(bandChain.peaking2.Q, state.peaking2.q, RAMP_SECONDS);
 
-    bandChain.highShelf.frequency.rampTo(state.highShelf.frequency, RAMP_SECONDS, now);
-    bandChain.highShelf.gain.rampTo(state.highShelf.gain, RAMP_SECONDS, now);
-    bandChain.highShelf.Q.rampTo(state.highShelf.q, RAMP_SECONDS, now);
+    safeRamp(bandChain.peaking3.frequency, state.peaking3.frequency, RAMP_SECONDS);
+    safeRamp(bandChain.peaking3.gain, state.peaking3.gain, RAMP_SECONDS);
+    safeRamp(bandChain.peaking3.Q, state.peaking3.q, RAMP_SECONDS);
 
-    bandChain.lowPass.frequency.rampTo(state.lowPass.frequency, 0.5, now);
-    bandChain.lowPass.Q.rampTo(state.lowPass.q, RAMP_SECONDS, now);
-    bandChain.highPass.frequency.rampTo(state.highPass.frequency, 0.5, now);
-    bandChain.highPass.Q.rampTo(state.highPass.q, RAMP_SECONDS, now);
+    safeRamp(bandChain.highShelf.frequency, state.highShelf.frequency, RAMP_SECONDS);
+    safeRamp(bandChain.highShelf.gain, state.highShelf.gain, RAMP_SECONDS);
+    safeRamp(bandChain.highShelf.Q, state.highShelf.q, RAMP_SECONDS);
 
-    bandChain.distortion.distortion = state.saturation.amount;
-    bandChain.distortion.wet.rampTo(state.saturation.amount, 0.5, now);
-    bandChain.reverb.wet.rampTo(state.reverb.wet, 0.5, now);
+    safeRamp(bandChain.lowPass.frequency, state.lowPass.frequency, 0.5);
+    safeRamp(bandChain.lowPass.Q, state.lowPass.q, RAMP_SECONDS);
+    safeRamp(bandChain.highPass.frequency, state.highPass.frequency, 0.5);
+    safeRamp(bandChain.highPass.Q, state.highPass.q, RAMP_SECONDS);
 
-    bandChain.compressor.threshold.rampTo(state.compressor.threshold, RAMP_SECONDS, now);
-    bandChain.compressor.ratio.rampTo(state.compressor.ratio, RAMP_SECONDS, now);
-    bandChain.compressor.attack.rampTo(state.compressor.attack, RAMP_SECONDS, now);
-    bandChain.compressor.release.rampTo(state.compressor.release, RAMP_SECONDS, now);
+    if (Number.isFinite(state.saturation.amount)) {
+      bandChain.distortion.distortion = state.saturation.amount;
+      bandChain.distortion.wet.rampTo(state.saturation.amount, 0.5, now);
+    }
+    
+    if (Number.isFinite(state.reverb.wet)) {
+      bandChain.reverb.wet.rampTo(state.reverb.wet, 0.5, now);
+    }
 
-    bandChain.bitcrusher.bits.rampTo(state.bitcrusher.bits, 0.5, now);
-    bandChain.bitcrusher.wet.rampTo(state.bitcrusher.wet, 0.5, now);
+    safeRamp(bandChain.compressor.threshold, state.compressor.threshold, RAMP_SECONDS);
+    safeRamp(bandChain.compressor.ratio, state.compressor.ratio, RAMP_SECONDS);
+    safeRamp(bandChain.compressor.attack, state.compressor.attack, RAMP_SECONDS);
+    safeRamp(bandChain.compressor.release, state.compressor.release, RAMP_SECONDS);
+
+    if (Number.isFinite(state.bitcrusher.bits)) {
+      bandChain.bitcrusher.bits.rampTo(state.bitcrusher.bits, 0.5, now);
+    }
+    if (Number.isFinite(state.bitcrusher.wet)) {
+      bandChain.bitcrusher.wet.rampTo(state.bitcrusher.wet, 0.5, now);
+    }
   }, []);
 
   const loadAudio = useCallback(async (file: File) => {

@@ -31,13 +31,13 @@ export function VibeCommandBar({ onApply, disabled = false }: VibeCommandBarProp
             }
           }}
           placeholder='Try "warm and airy" or "remove boxy"'
-          className="w-full rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
+          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00f5d4]"
         />
         <button
           type="button"
           onClick={() => query.trim() && void onApply(query)}
           disabled={disabled}
-          className="inline-flex items-center gap-2 rounded-lg border border-cyan-300/40 bg-cyan-500/15 px-3 py-2 text-sm text-cyan-100 hover:bg-cyan-400/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
+          className="inline-flex items-center gap-2 rounded-lg border border-[#00f5d4]/40 bg-[#00f5d4]/10 px-3 py-2 text-sm text-[#00f5d4] hover:bg-[#00f5d4]/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00f5d4] transition-all active:scale-95 shadow-[0_0_15px_rgba(0,245,212,0.1)]"
         >
           <WandSparkles className="h-4 w-4" />
           Apply
@@ -53,7 +53,7 @@ export function VibeCommandBar({ onApply, disabled = false }: VibeCommandBarProp
               void onApply(suggestion);
             }}
             disabled={disabled}
-            className="rounded-full border border-white/15 bg-slate-900/60 px-3 py-1 text-xs text-slate-200 hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
+            className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70 hover:bg-[#9d4edd]/20 hover:text-[#9d4edd] hover:border-[#9d4edd]/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#9d4edd] transition-colors"
           >
             {suggestion}
           </button>

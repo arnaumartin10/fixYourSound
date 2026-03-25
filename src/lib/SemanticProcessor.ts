@@ -20,8 +20,13 @@ export interface LlmDspParams {
   highpass: number;
   distortion: number;
   bitrate: number;
-  reverbWet: number;
-  compressionThreshold: number;
+  reverb: { wet: number };
+  compressor: { 
+    threshold: number; 
+    ratio: number; 
+    attack: number; 
+    release: number;
+  };
   explanation: string;
 }
 
@@ -184,8 +189,13 @@ export class SemanticProcessor {
         highpass: 20,
         distortion: 0,
         bitrate: 16,
-        reverbWet: 0,
-        compressionThreshold: -18,
+        reverb: { wet: 0 },
+        compressor: {
+          threshold: -18,
+          ratio: 1,
+          attack: 0.008,
+          release: 0.09,
+        },
         explanation: "API request failed, reset to default.",
       };
     }
@@ -197,17 +207,40 @@ export class SemanticProcessor {
 
   static toDspState(payload: LlmDspParams): DspState {
     const next: DspState = structuredClone(BASE_DSP_STATE);
-    next.lowPass = { frequency: payload.lowpass, q: 1 };
-    next.highPass = { frequency: payload.highpass, q: 1 };
-    next.saturation = { amount: payload.distortion, order: 2 };
-    next.bitcrusher = { bits: payload.bitrate, wet: payload.bitrate < 16 ? 1 : 0 };
-    next.compressor = {
-      threshold: payload.compressionThreshold,
-      ratio: 2.2,
-      attack: 0.006,
-      release: 0.08,
+    
+    // Ensure numeric values are finite, else use defaults
+    const getNum = (val: any, fallback: number) => (Number.isFinite(Number(val)) ? Number(val) : fallback);
+
+    next.lowPass = { 
+      frequency: getNum(payload.lowpass, BASE_DSP_STATE.lowPass.frequency), 
+      q: 1 
     };
-    next.reverb = { wet: payload.reverbWet };
+    next.highPass = { 
+      frequency: getNum(payload.highpass, BASE_DSP_STATE.highPass.frequency), 
+      q: 1 
+    };
+    next.saturation = { 
+      amount: getNum(payload.distortion, BASE_DSP_STATE.saturation.amount), 
+      order: 2 
+    };
+    
+    const bitrate = getNum(payload.bitrate, BASE_DSP_STATE.bitcrusher.bits);
+    next.bitcrusher = { 
+      bits: bitrate, 
+      wet: (bitrate < 16 && bitrate > 0) ? 1 : 0 
+    };
+
+    next.compressor = {
+      threshold: getNum(payload.compressor?.threshold, BASE_DSP_STATE.compressor.threshold),
+      ratio: getNum(payload.compressor?.ratio, BASE_DSP_STATE.compressor.ratio),
+      attack: getNum(payload.compressor?.attack, BASE_DSP_STATE.compressor.attack),
+      release: getNum(payload.compressor?.release, BASE_DSP_STATE.compressor.release),
+    };
+    
+    next.reverb = { 
+      wet: getNum(payload.reverb?.wet, BASE_DSP_STATE.reverb.wet) 
+    };
+    
     return next;
   }
 
