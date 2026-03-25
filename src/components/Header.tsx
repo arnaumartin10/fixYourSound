@@ -9,6 +9,7 @@ const navLinks = [
   { name: "Home", href: "/" },
   { name: "Prompting Audio Effects", href: "/prompting-effects" },
   { name: "Chord Architect", href: "/chord-architect" },
+  { name: "Voice to Notes", href: "/voice-to-notes" },
   { name: "Learning Hub", href: "/learning-hub", wip: true },
   { name: "Community", href: "/community", wip: true },
 ];

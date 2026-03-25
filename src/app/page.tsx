@@ -8,7 +8,8 @@ import {
   ArrowRight,
   Sparkles,
   CircuitBoard,
-  BrainCircuit
+  BrainCircuit,
+  Mic
 } from "lucide-react";
 
 const Section = ({ 
@@ -166,6 +167,14 @@ export default function HomePage() {
           description="Bridge the gap between inspiration and theory. Tell us your track's mood and scale, and receive professional chord progressions. Visualize every note on a Piano Roll and Guitar Fretboard to master your composition."
           buttonText="Start Composing ->"
           buttonHref="/chord-architect"
+        />
+
+        <Section 
+          icon={Mic}
+          title="Voice to Notes"
+          description="Sing or hum a melody and watch it transform into precise musical notes. Transcribe vocal performances, create MIDI files, and unlock the melody in your voice. Perfect for capturing inspiration in the moment."
+          buttonText="Start Transcribing ->"
+          buttonHref="/voice-to-notes"
         />
 
       </section>
