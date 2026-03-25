@@ -111,7 +111,7 @@ export default function HomePage() {
           </h1>
           
           <p className="text-xl md:text-2xl text-white/40 mb-16 max-w-3xl mx-auto leading-relaxed font-medium">
-            Fix Your Sound isn't about letting AI make music for you. It's about giving you the 
+            Fix Your Sound isn&apos;t about letting AI make music for you. It&apos;s about giving you the 
             <span className="text-white"> tools and knowledge</span> to create better, faster, and with deeper understanding.
           </p>
 
@@ -181,7 +181,7 @@ export default function HomePage() {
         >
           <h3 className="text-4xl md:text-5xl font-black mb-8 tracking-tighter text-white">Built for producers, by producers.</h3>
           <p className="text-xl text-white/30 font-medium leading-relaxed mb-12">
-            Enhance your workflow, <span className="text-[#9d4edd] font-black">don't replace your ears.</span> 
+            Enhance your workflow, <span className="text-[#9d4edd] font-black">don&apos;t replace your ears.</span> 
             Our mission is to democratize complex audio engineering and music theory through intuitive, AI-assisted interfaces.
           </p>
           <div className="flex items-center justify-center gap-6 text-[#00f5d4]/50 text-sm font-black uppercase tracking-[0.3em]">

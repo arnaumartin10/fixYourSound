@@ -150,7 +150,9 @@ export default function ChordArchitectPage() {
                 {strummingIdea && (
                    <div className="mt-8 p-6 bg-[#9d4edd]/5 rounded-3xl border border-[#9d4edd]/20">
                      <span className="text-[10px] font-black uppercase tracking-widest text-[#9d4edd] mb-2 block">Performance Idea</span>
-                     <p className="text-xs text-white/50 leading-relaxed font-medium italic">"{strummingIdea}"</p>
+                    <p className="text-xs text-white/50 leading-relaxed font-medium italic">
+                      &quot;{strummingIdea}&quot;
+                    </p>
                    </div>
                 )}
               </motion.div>
