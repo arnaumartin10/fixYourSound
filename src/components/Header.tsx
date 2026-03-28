@@ -7,6 +7,7 @@ import { Logo } from "./Logo";
 
 const navLinks = [
   { name: "Home", href: "/" },
+  { name: "AI Synth", href: "/ai-synth" },
   { name: "Prompting Audio Effects", href: "/prompting-effects" },
   { name: "Chord Architect", href: "/chord-architect" },
   { name: "Voice to Notes", href: "/voice-to-notes" },

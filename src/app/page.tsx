@@ -9,7 +9,8 @@ import {
   Sparkles,
   CircuitBoard,
   BrainCircuit,
-  Mic
+  Mic,
+  Radio
 } from "lucide-react";
 
 const Section = ({ 
@@ -153,7 +154,16 @@ export default function HomePage() {
       <section className="container mx-auto px-6 max-w-7xl relative z-10">
         
         <Section 
+          icon={Radio}
+          title="Virtual Sound Studio"
+          description="A complete Virtual Guitar Rig and AI Synthesizer. Generate custom patches by describing the sound, or ask for 'David Gilmour's tone' and watch the stompboxes dial themselves in. Connect your real guitar through an audio interface to play live through the AI-generated rigs."
+          buttonText="Enter Studio ->"
+          buttonHref="/ai-synth"
+        />
+
+        <Section 
           icon={Wand2}
+          reversed
           title="Prompting Audio Effects"
           description="Describe a vibe and watch our AI translate it into real-time Digital Signal Processing. Learn exactly which filters, compressors, and saturators are needed to achieve that professional 'underwater', 'lo-fi', or 'cinematic' sound."
           buttonText="Explore DSP Engine ->"
@@ -162,7 +172,6 @@ export default function HomePage() {
 
         <Section 
           icon={Music}
-          reversed
           title="Chord Architect"
           description="Bridge the gap between inspiration and theory. Tell us your track's mood and scale, and receive professional chord progressions. Visualize every note on a Piano Roll and Guitar Fretboard to master your composition."
           buttonText="Start Composing ->"

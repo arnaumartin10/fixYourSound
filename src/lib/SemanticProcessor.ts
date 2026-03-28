@@ -13,6 +13,9 @@ export interface DspState {
   compressor: { threshold: number; ratio: number; attack: number; release: number };
   bitcrusher: { bits: number; wet: number };
   reverb: { wet: number };
+  phaser: { rate: number; depth: number; baseFrequency: number; wet: number };
+  tremolo: { frequency: number; depth: number; wet: number };
+  pitchShift: { pitch: number; wet: number };
 }
 
 export interface LlmDspParams {
@@ -27,6 +30,9 @@ export interface LlmDspParams {
     attack: number; 
     release: number;
   };
+  phaser?: { rate: number; depth: number; baseFrequency: number; wet: number };
+  tremolo?: { frequency: number; depth: number; wet: number };
+  pitchShift?: { pitch: number; wet: number };
   explanation: string;
 }
 
@@ -43,6 +49,9 @@ export const BASE_DSP_STATE: DspState = {
   compressor: { threshold: -18, ratio: 1, attack: 0.008, release: 0.09 },
   bitcrusher: { bits: 8, wet: 0 },
   reverb: { wet: 0 },
+  phaser: { rate: 0.5, depth: 0.5, baseFrequency: 350, wet: 0 },
+  tremolo: { frequency: 4, depth: 0.5, wet: 0 },
+  pitchShift: { pitch: 0, wet: 0 },
 };
 
 const TERM_LIST: SemanticTerm[] = [
@@ -239,6 +248,24 @@ export class SemanticProcessor {
     
     next.reverb = { 
       wet: getNum(payload.reverb?.wet, BASE_DSP_STATE.reverb.wet) 
+    };
+    
+    next.phaser = {
+      rate: getNum(payload.phaser?.rate, BASE_DSP_STATE.phaser.rate),
+      depth: getNum(payload.phaser?.depth, BASE_DSP_STATE.phaser.depth),
+      baseFrequency: getNum(payload.phaser?.baseFrequency, BASE_DSP_STATE.phaser.baseFrequency),
+      wet: getNum(payload.phaser?.wet, BASE_DSP_STATE.phaser.wet),
+    };
+
+    next.tremolo = {
+      frequency: getNum(payload.tremolo?.frequency, BASE_DSP_STATE.tremolo.frequency),
+      depth: getNum(payload.tremolo?.depth, BASE_DSP_STATE.tremolo.depth),
+      wet: getNum(payload.tremolo?.wet, BASE_DSP_STATE.tremolo.wet),
+    };
+
+    next.pitchShift = {
+      pitch: getNum(payload.pitchShift?.pitch, BASE_DSP_STATE.pitchShift.pitch),
+      wet: getNum(payload.pitchShift?.wet, BASE_DSP_STATE.pitchShift.wet),
     };
     
     return next;

@@ -126,6 +126,9 @@ export function AudioEngineProvider({ children }: { children: React.ReactNode })
     reverb: Tone.Reverb;
     compressor: Tone.Compressor;
     bitcrusher: Tone.BitCrusher;
+    phaser: Tone.Phaser;
+    tremolo: Tone.Tremolo;
+    pitchShift: Tone.PitchShift;
   } | null>(null);
 
   const [isReady, setIsReady] = useState(false);
@@ -171,6 +174,17 @@ export function AudioEngineProvider({ children }: { children: React.ReactNode })
     const compressor = new Tone.Compressor(-18, 1);
     const bitcrusher = new Tone.BitCrusher(8);
     bitcrusher.wet.value = 0;
+    
+    // New effects
+    const phaser = new Tone.Phaser({ frequency: 0.5, octaves: 3, baseFrequency: 350 });
+    phaser.wet.value = 0;
+    
+    const tremolo = new Tone.Tremolo({ frequency: 4, depth: 0.5 });
+    tremolo.wet.value = 0;
+    tremolo.start(); // Tremolo needs to be "started" to oscillate
+    
+    const pitchShift = new Tone.PitchShift({ pitch: 0 });
+    pitchShift.wet.value = 0;
 
     player.connect(processedGain);
     player.connect(selector.a);
@@ -190,6 +204,9 @@ export function AudioEngineProvider({ children }: { children: React.ReactNode })
         reverb,
         compressor,
         bitcrusher,
+        phaser,
+        tremolo,
+        pitchShift,
         selector.b
       );
     selector.b.connect(processedAnalyser);
@@ -215,6 +232,9 @@ export function AudioEngineProvider({ children }: { children: React.ReactNode })
       reverb,
       compressor,
       bitcrusher,
+      phaser,
+      tremolo,
+      pitchShift,
     };
 
     setIsReady(true);
@@ -281,6 +301,29 @@ export function AudioEngineProvider({ children }: { children: React.ReactNode })
     }
     if (Number.isFinite(state.bitcrusher.wet)) {
       bandChain.bitcrusher.wet.rampTo(state.bitcrusher.wet, 0.5, now);
+    }
+    
+    // Phaser
+    if (Number.isFinite(state.phaser.wet)) {
+      bandChain.phaser.wet.rampTo(state.phaser.wet, 0.5, now);
+      safeRamp(bandChain.phaser.frequency, state.phaser.rate, RAMP_SECONDS);
+      safeRamp(bandChain.phaser.baseFrequency, state.phaser.baseFrequency, RAMP_SECONDS);
+    }
+
+    // Tremolo
+    if (Number.isFinite(state.tremolo.wet)) {
+      bandChain.tremolo.wet.rampTo(state.tremolo.wet, 0.5, now);
+      safeRamp(bandChain.tremolo.frequency, state.tremolo.frequency, RAMP_SECONDS);
+      safeRamp(bandChain.tremolo.depth, state.tremolo.depth, RAMP_SECONDS);
+    }
+
+    // PitchShift
+    if (Number.isFinite(state.pitchShift.wet)) {
+      bandChain.pitchShift.wet.rampTo(state.pitchShift.wet, 0.5, now);
+      // Tone.PitchShift does not have rampTo for pitch
+      if (Number.isFinite(state.pitchShift.pitch)) {
+        bandChain.pitchShift.pitch = state.pitchShift.pitch;
+      }
     }
   }, []);
 

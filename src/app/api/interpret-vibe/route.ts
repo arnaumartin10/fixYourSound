@@ -15,6 +15,9 @@ compressor: {
   attack: seconds (0.001 to 0.2),
   release: seconds (0.01 to 1.0)
 }
+phaser: { rate: (0.1 to 10), depth: (0.1 to 1.0), baseFrequency: (100 to 2000), wet: (0.0 to 1.0) }
+tremolo: { frequency: (0.1 to 10), depth: (0.1 to 1.0), wet: (0.0 to 1.0) }
+pitchShift: { pitch: semitones (-12 to 12), wet: (0.0 to 1.0) }
 explanation: A very short (one sentence) engineering reason for these choices.
 
 Return ONLY the raw JSON. No markdown, no '\`\`\`json', no conversational text.`;
@@ -31,6 +34,9 @@ const DEFAULT_RESPONSE = {
     attack: 0.008,
     release: 0.09,
   },
+  phaser: { rate: 0.5, depth: 0.5, baseFrequency: 350, wet: 0 },
+  tremolo: { frequency: 4, depth: 0.5, wet: 0 },
+  pitchShift: { pitch: 0, wet: 0 },
   explanation: "Default neutral state.",
 };
 
@@ -52,6 +58,21 @@ function sanitize(raw: any) {
       ratio: clamp(Number(raw.compressor?.ratio ?? DEFAULT_RESPONSE.compressor.ratio), 1, 20),
       attack: clamp(Number(raw.compressor?.attack ?? DEFAULT_RESPONSE.compressor.attack), 0.001, 0.2),
       release: clamp(Number(raw.compressor?.release ?? DEFAULT_RESPONSE.compressor.release), 0.01, 1.0),
+    },
+    phaser: {
+      rate: clamp(Number(raw.phaser?.rate ?? DEFAULT_RESPONSE.phaser.rate), 0.1, 10),
+      depth: clamp(Number(raw.phaser?.depth ?? DEFAULT_RESPONSE.phaser.depth), 0.1, 1.0),
+      baseFrequency: clamp(Number(raw.phaser?.baseFrequency ?? DEFAULT_RESPONSE.phaser.baseFrequency), 100, 2000),
+      wet: clamp(Number(raw.phaser?.wet ?? DEFAULT_RESPONSE.phaser.wet), 0, 1),
+    },
+    tremolo: {
+      frequency: clamp(Number(raw.tremolo?.frequency ?? DEFAULT_RESPONSE.tremolo.frequency), 0.1, 10),
+      depth: clamp(Number(raw.tremolo?.depth ?? DEFAULT_RESPONSE.tremolo.depth), 0.1, 1.0),
+      wet: clamp(Number(raw.tremolo?.wet ?? DEFAULT_RESPONSE.tremolo.wet), 0, 1),
+    },
+    pitchShift: {
+      pitch: clamp(Number(raw.pitchShift?.pitch ?? DEFAULT_RESPONSE.pitchShift.pitch), -12, 12),
+      wet: clamp(Number(raw.pitchShift?.wet ?? DEFAULT_RESPONSE.pitchShift.wet), 0, 1),
     },
     explanation: String(raw.explanation ?? DEFAULT_RESPONSE.explanation),
   };
