@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 import { Logo } from "./Logo";
 
 const navLinks = [
@@ -17,6 +18,7 @@ const navLinks = [
 
 export const Header = () => {
   const pathname = usePathname();
+  const { data: session, status } = useSession();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/5">
@@ -60,6 +62,22 @@ export const Header = () => {
             );
           })}
         </nav>
+        <div className="hidden md:flex items-center ml-8 gap-4">
+          {status === "loading" ? (
+            <div className="w-8 h-8 rounded-full border-2 border-white/10 border-t-[#00f5d4] animate-spin" />
+          ) : session?.user ? (
+            <Link href="/profile" className="flex items-center gap-3 group">
+              <span className="text-xs font-bold text-white/50 group-hover:text-white transition-colors">{session.user.name?.split(' ')[0] || "Profile"}</span>
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#00f5d4] to-[#9d4edd] flex items-center justify-center text-black font-black text-sm overflow-hidden shadow-[0_0_15px_rgba(0,245,212,0.2)] group-hover:scale-105 transition-all">
+                  {session.user.image ? <img src={session.user.image} alt="User" /> : session.user.name?.charAt(0) || session.user.email?.charAt(0) || "U"}
+              </div>
+            </Link>
+          ) : (
+            <Link href="/auth/signin" className="px-5 py-2 rounded-full border border-white/20 text-white/80 hover:text-white hover:border-[#00f5d4] text-sm font-bold transition-all hover:shadow-[0_0_15px_rgba(0,245,212,0.2)]">
+              Sign In
+            </Link>
+          )}
+        </div>
       </div>
     </header>
   );
