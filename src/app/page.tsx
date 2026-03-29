@@ -10,7 +10,8 @@ import {
   CircuitBoard,
   BrainCircuit,
   Mic,
-  Radio
+  Radio,
+  AudioLines
 } from "lucide-react";
 
 const Section = ({ 
@@ -184,6 +185,15 @@ export default function HomePage() {
           description="Sing or hum a melody and watch it transform into precise musical notes. Transcribe vocal performances, create MIDI files, and unlock the melody in your voice. Perfect for capturing inspiration in the moment."
           buttonText="Start Transcribing ->"
           buttonHref="/voice-to-notes"
+        />
+
+        <Section 
+          icon={AudioLines}
+          reversed
+          title="Song Analyzer"
+          description="Decode the technical DNA of any track. Upload an MP3 or WAV to instantly detect BPM, Musical Key, and Loudness levels. Use the Tap Tempo tool to find the rhythm in your head, then unlock personalized AI producer insights tailored to your sound."
+          buttonText="Analyze Your Track ->"
+          buttonHref="/song-analyzer"
         />
 
       </section>
