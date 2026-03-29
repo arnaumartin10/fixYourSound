@@ -556,20 +556,30 @@ export default function BeatGeneratorPage() {
             <div className="absolute inset-0 bg-gradient-to-br from-[#00f5d4]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
             <div className="relative z-10">
-              <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1 block mb-3">
+              <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-1 block mb-4">
                 Drum Kit
               </label>
-              <select
-                value={drumKit}
-                onChange={(e) => setDrumKit(e.target.value as any)}
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-[#00f5d4]/50 transition-colors text-sm cursor-pointer"
-              >
-                <option value="electronic">Electronic (909/808)</option>
-                <option value="pop">Pop (Balanced)</option>
-                <option value="rock">Rock (Punchy)</option>
-                <option value="latino">Latino (Tight)</option>
-                <option value="rap-trap">Rap/Trap (808)</option>
-              </select>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: "electronic", label: "Electronic" },
+                  { value: "pop", label: "Pop" },
+                  { value: "rock", label: "Rock" },
+                  { value: "latino", label: "Latino" },
+                  { value: "rap-trap", label: "Rap/Trap" },
+                ].map((kit) => (
+                  <button
+                    key={kit.value}
+                    onClick={() => setDrumKit(kit.value as any)}
+                    className={`py-3 px-3 rounded-xl font-bold text-xs transition-all ${
+                      drumKit === kit.value
+                        ? "bg-[#00f5d4] text-black shadow-[0_0_16px_rgba(0,245,212,0.3)]"
+                        : "bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 hover:border-[#00f5d4]/30"
+                    }`}
+                  >
+                    {kit.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

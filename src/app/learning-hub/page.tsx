@@ -287,12 +287,12 @@ export default function LearningHubPage() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-gradient-to-r from-[#00f5d4]/10 to-[#0084ff]/10 border border-[#00f5d4]/30 rounded-lg p-4 flex items-start gap-3"
+          className="bg-gradient-to-r from-[#00f5d4]/10 to-[#0084ff]/10 border border-[#00f5d4]/30 rounded-lg p-6 flex items-start gap-3"
         >
-          <div className="text-[#00f5d4] text-xl mt-0.5">🎧</div>
+          <div className="text-[#00f5d4] text-2xl mt-0.5">🎧</div>
           <div>
-            <p className="font-black text-white text-sm">Use Headphones for Best Results</p>
-            <p className="text-[10px] text-white/60 mt-1">Closed-back headphones are essential to hear the subtle differences in reverb, delay, compression, and EQ effects.</p>
+            <p className="font-black text-white text-lg">Use Headphones for Best Results</p>
+            <p className="text-sm text-white/60 mt-2">Closed-back headphones are essential to hear the subtle differences in reverb, delay, compression, and EQ effects.</p>
           </div>
         </motion.div>
 
@@ -300,7 +300,7 @@ export default function LearningHubPage() {
         <section className="space-y-6">
           <div className="flex items-center justify-center gap-3">
             <div className="w-8 h-0.5 bg-gradient-to-r from-transparent to-[#00f5d4]" />
-            <h2 className="text-[10px] font-black text-white/30 uppercase tracking-widest">
+            <h2 className="text-sm font-black text-white/30 uppercase tracking-widest">
               Upload Your Sound
             </h2>
             <div className="w-8 h-0.5 bg-gradient-to-l from-transparent to-[#00f5d4]" />
@@ -398,18 +398,6 @@ export default function LearningHubPage() {
             </p>
           </motion.div>
         )}
-
-        {/* FOOTER */}
-        <motion.footer
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-center pt-12 border-t border-white/5"
-        >
-          <p className="text-xs text-white/30 uppercase tracking-wide">
-            Powered by Tone.js and Google Gemini
-          </p>
-        </motion.footer>
       </div>
     </main>
   );
