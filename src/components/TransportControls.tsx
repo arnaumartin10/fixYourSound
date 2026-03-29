@@ -36,7 +36,7 @@ export function TransportControls({
         type="button"
         onClick={() => void onPlayOriginal()}
         disabled={originalDisabled}
-        className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00f5d4]"
+        className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-start"
       >
         {isOriginalPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
         {isOriginalPlaying ? "Pause Original" : "Play Original"}
@@ -45,7 +45,7 @@ export function TransportControls({
         type="button"
         onClick={() => void onPlayProcessed()}
         disabled={processedDisabled}
-        className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#00f5d4]/40 bg-[#00f5d4]/10 px-4 py-3 text-sm text-[#00f5d4] hover:bg-[#00f5d4]/20 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00f5d4] shadow-[0_0_15px_rgba(0,245,212,0.1)]"
+        className="inline-flex items-center justify-center gap-2 rounded-lg border border-brand-start/40 bg-brand-start/10 px-4 py-3 text-sm text-brand-start hover:bg-brand-start/20 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-start shadow-[0_0_15px_rgba(255,107,53,0.1)]"
       >
         {isProcessedPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
         {isProcessedPlaying ? "Pause Processed" : "Play Processed"}
@@ -56,10 +56,10 @@ export function TransportControls({
           type="button"
           onClick={() => setShowExportOptions(!showExportOptions)}
           disabled={processedDisabled}
-          className="flex-1 inline-flex items-center justify-center gap-2 rounded-l-lg border border-[#9d4edd]/40 bg-[#9d4edd]/10 px-4 py-3 text-sm text-[#9d4edd] hover:bg-[#9d4edd]/20 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex-1 inline-flex items-center justify-center gap-2 rounded-l-lg border border-brand-end/40 bg-brand-end/10 px-4 py-3 text-sm text-brand-end hover:bg-brand-end/20 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isBouncing ? (
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#9d4edd] border-t-transparent" />
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-end border-t-transparent" />
           ) : (
             <Download className="h-4 w-4" />
           )}
@@ -69,7 +69,7 @@ export function TransportControls({
           type="button"
           onClick={() => setShowExportOptions(!showExportOptions)}
           disabled={processedDisabled}
-          className="inline-flex items-center justify-center rounded-r-lg border-y border-r border-[#9d4edd]/40 bg-[#9d4edd]/10 px-2 hover:bg-[#9d4edd]/20 disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex items-center justify-center rounded-r-lg border-y border-r border-brand-end/40 bg-brand-end/10 px-2 hover:bg-brand-end/20 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ChevronDown className={`h-4 w-4 transition-transform ${showExportOptions ? "rotate-180" : ""}`} />
         </button>
@@ -81,7 +81,7 @@ export function TransportControls({
                 void onExport("wav");
                 setShowExportOptions(false);
               }}
-              className="flex w-full items-center px-3 py-2 text-left text-sm text-slate-200 hover:bg-[#9d4edd]/20 hover:text-[#9d4edd] rounded-md transition-colors"
+              className="flex w-full items-center px-3 py-2 text-left text-sm text-slate-200 hover:bg-brand-end/20 hover:text-brand-end rounded-md transition-colors"
             >
               WAV (High Quality)
             </button>
@@ -90,7 +90,7 @@ export function TransportControls({
                 void onExport("mp3");
                 setShowExportOptions(false);
               }}
-              className="flex w-full items-center px-3 py-2 text-left text-sm text-slate-200 hover:bg-[#9d4edd]/20 hover:text-[#9d4edd] rounded-md transition-colors"
+              className="flex w-full items-center px-3 py-2 text-left text-sm text-slate-200 hover:bg-brand-end/20 hover:text-brand-end rounded-md transition-colors\"
             >
               MP3 (Compressed)
             </button>
@@ -101,7 +101,7 @@ export function TransportControls({
       {(isLoading || isBouncing) ? (
         <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-slate-900/70 text-xs text-slate-100 backdrop-blur-sm">
           <span className="inline-flex items-center gap-2">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-[#00f5d4]" />
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-brand-start" />
             {isBouncing ? "Bouncing audio..." : "Loading Audio..."}
           </span>
         </div>

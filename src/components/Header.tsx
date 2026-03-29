@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
-import { Logo } from "./Logo";
 import { ChevronDown, Music, BookOpen } from "lucide-react";
 import { useState } from "react";
 
@@ -37,8 +37,18 @@ export const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/5">
       <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center group">
-          <Logo />
+        <Link href="/" className="flex items-center gap-3 group">
+          <Image
+            src="/pictures/logo.png"
+            alt="FixYourSound Logo"
+            width={80}
+            height={80}
+            priority
+            className="h-20 w-20 object-contain group-hover:scale-110 transition-transform duration-300"
+          />
+          <span className="text-lg font-black text-[#00f5d4] tracking-tight hidden sm:inline hover:text-[#00d4aa] transition-colors duration-300">
+            FIXYOURSOUND
+          </span>
         </Link>
         <nav className="hidden md:flex items-center space-x-8">
           {mainNavLinks.map((link) => {

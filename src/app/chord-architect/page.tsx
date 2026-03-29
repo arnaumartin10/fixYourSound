@@ -66,10 +66,10 @@ export default function ChordArchitectPage() {
         {/* Left Sidebar: Controls & List */}
         <aside className="lg:col-span-4 space-y-8">
           <div className="bg-[#0a0a0a] rounded-3xl border border-white/5 p-8 shadow-2xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#00f5d4]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-start/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
             
             <h2 className="text-2xl font-black text-white mb-6 uppercase tracking-tighter flex items-center gap-3">
-              <Music className="text-[#00f5d4]" />
+              <Music className="text-brand-start" />
               Architect
             </h2>
 
@@ -79,7 +79,7 @@ export default function ChordArchitectPage() {
                 <select 
                   value={scale}
                   onChange={(e) => setScale(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-[#00f5d4]/50 transition-colors appearance-none"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-brand-start/50 transition-colors appearance-none"
                 >
                   {SCALES.map(s => <option key={s} value={s} className="bg-[#0a0a0a]">{s}</option>)}
                 </select>
@@ -91,14 +91,14 @@ export default function ChordArchitectPage() {
                   value={vibe}
                   onChange={(e) => setVibe(e.target.value)}
                   placeholder="e.g., 'Melancholic jazz in space' or 'High energy pop punk'"
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-[#00f5d4]/50 transition-colors h-32 resize-none text-sm placeholder:text-white/20"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-white focus:outline-none focus:border-brand-start/50 transition-colors h-32 resize-none text-sm placeholder:text-white/20"
                 />
               </div>
 
               <button
                 onClick={handleGenerate}
                 disabled={isLoading}
-                className="w-full group relative flex items-center justify-center gap-2 bg-[#00f5d4] text-black px-8 py-4 rounded-2xl font-black text-lg transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(0,245,212,0.2)] disabled:opacity-50"
+                className="w-full group relative flex items-center justify-center gap-2 bg-gradient-to-r from-brand-start to-brand-end text-black px-8 py-4 rounded-2xl font-black text-lg transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(255,107,53,0.3)] disabled:opacity-50"
               >
                 {isLoading ? (
                   <span className="h-5 w-5 animate-spin rounded-full border-2 border-black border-t-transparent" />
@@ -122,8 +122,8 @@ export default function ChordArchitectPage() {
                 className="space-y-4"
               >
                 <div className="flex items-center justify-between px-2">
-                   <h3 className="text-[10px] font-black uppercase tracking-widest text-[#00f5d4]">Generated Sequence</h3>
-                   <Sparkles size={14} className="text-[#00f5d4] animate-pulse" />
+                   <h3 className="text-[10px] font-black uppercase tracking-widest text-brand-start">Generated Sequence</h3>
+                   <Sparkles size={14} className="text-brand-start animate-pulse" />
                 </div>
                 {progression.map((item, idx) => (
                   <button
@@ -131,8 +131,8 @@ export default function ChordArchitectPage() {
                     onClick={() => setActiveIndex(idx)}
                     className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 group relative overflow-hidden ${
                       activeIndex === idx 
-                        ? "bg-[#00f5d4] border-[#00f5d4] text-black shadow-[0_0_20px_rgba(0,245,212,0.2)]" 
-                        : "bg-white/5 border-white/5 text-white hover:border-[#00f5d4]/30"
+                        ? "bg-brand-start border-brand-start text-black shadow-[0_0_20px_rgba(255,107,53,0.3)]" 
+                        : "bg-white/5 border-white/5 text-white hover:border-brand-start/30"
                     }`}
                   >
                     <div className="flex justify-between items-center relative z-10">
@@ -148,8 +148,8 @@ export default function ChordArchitectPage() {
                 ))}
 
                 {strummingIdea && (
-                   <div className="mt-8 p-6 bg-[#9d4edd]/5 rounded-3xl border border-[#9d4edd]/20">
-                     <span className="text-[10px] font-black uppercase tracking-widest text-[#9d4edd] mb-2 block">Performance Idea</span>
+                   <div className="mt-8 p-6 bg-brand-end/5 rounded-3xl border border-brand-end/20">
+                     <span className="text-[10px] font-black uppercase tracking-widest text-brand-end mb-2 block">Performance Idea</span>
                     <p className="text-xs text-white/50 leading-relaxed font-medium italic">
                       &quot;{strummingIdea}&quot;
                     </p>
@@ -164,7 +164,7 @@ export default function ChordArchitectPage() {
         <main className="lg:col-span-8 space-y-10">
           <div className="space-y-6">
             <div className="flex items-center gap-3 px-2">
-              <PianoIcon size={20} className="text-[#00f5d4]" />
+              <PianoIcon size={20} className="text-brand-start" />
               <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40">Piano Voicing</h3>
             </div>
             <PianoVisualizer activeNotes={currentNotes} />
@@ -172,7 +172,7 @@ export default function ChordArchitectPage() {
 
           <div className="space-y-6">
             <div className="flex items-center gap-3 px-2">
-              <GuitarIcon size={20} className="text-[#9d4edd]" />
+              <GuitarIcon size={20} className="text-brand-end" />
               <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40">Fretboard Position</h3>
             </div>
             <GuitarVisualizer chordName={currentChord} />
@@ -185,12 +185,12 @@ export default function ChordArchitectPage() {
                animate={{ opacity: 1 }}
                className="mt-12 p-10 bg-black border border-white/5 rounded-[40px] relative overflow-hidden"
              >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-[#00f5d4]/10 blur-[100px] rounded-full -mr-32 -mt-32" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-start/10 blur-[100px] rounded-full -mr-32 -mt-32" />
                 <div className="relative z-10">
-                  <span className="text-[#00f5d4] font-black text-6xl tracking-tighter mb-4 block">{currentChord}</span>
+                  <span className="text-brand-start font-black text-6xl tracking-tighter mb-4 block">{currentChord}</span>
                   <p className="text-lg text-white/60 font-medium leading-relaxed max-w-2xl">
                     Thinking in <span className="text-white font-bold">{scale}</span>, this chord functions as a 
-                    pivotal harmonic anchor. The notes <span className="text-[#00f5d4] font-bold">{Chord.get(currentChord).notes.join(", ")}</span> 
+                    pivotal harmonic anchor. The notes <span className="text-brand-start font-bold">{Chord.get(currentChord).notes.join(", ")}</span> 
                     create the characteristic tension requested by your vibe.
                   </p>
                 </div>
