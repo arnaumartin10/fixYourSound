@@ -12,7 +12,15 @@ import {
   Sparkles,
   Zap,
   Volume2,
+  Loader,
 } from "lucide-react";
+import {
+  createDrumKitSampler,
+  clearSampleCache,
+  triggerDrumSample,
+  getSamplesLoadingProgress,
+  type DrumGenre,
+} from "@/lib/beatGenerator/SampleLoader";
 
 interface BeatTrack {
   instrument: string;
@@ -28,6 +36,14 @@ interface BeatData {
   tracks: BeatTrack[];
 }
 
+interface DrumKitSampler {
+  kick: Tone.Sampler;
+  snare: Tone.Sampler;
+  closedHat: Tone.Sampler;
+  openHat: Tone.Sampler;
+  isReady: boolean;
+}
+
 export default function BeatGeneratorPage() {
   const [prompt, setPrompt] = useState("");
   const [intensity, setIntensity] = useState(50);
@@ -39,295 +55,61 @@ export default function BeatGeneratorPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [showInfo, setShowInfo] = useState(true);
+  const [isLoadingSamples, setIsLoadingSamples] = useState(false);
+  const [samplesLoadingProgress, setSamplesLoadingProgress] = useState(0);
   const maxSteps = bars * 16;
 
-  const drumSynths = useRef<{
-    kick: Tone.MembraneSynth | null;
-    snare: Tone.NoiseSynth | null;
-    closedHat: Tone.MetalSynth | null;
-    openHat: Tone.MetalSynth | null;
-  }>({
-    kick: null,
-    snare: null,
-    closedHat: null,
-    openHat: null,
-  });
-
+  const drukitSamplerRef = useRef<DrumKitSampler | null>(null);
   const transportRef = useRef<Tone.Loop | null>(null);
-  const synthInitRef = useRef(false);
-  const kitTypeRef = useRef<BeatData["kitType"]>("house");
+  const samplerInitRef = useRef(false);
 
-  // Create drum kit configuration based on user-selected drumKit
-  const createDrumKit = useCallback(
-    (userDrumKit: "rock" | "pop" | "electronic" | "latino" | "rap-trap") => {
-      if (Tone.context.state !== "running") {
-        return null;
-      }
-
-      const configs = {
-        "rap-trap": {
-          // 808-style long decay kick, crisp snare
-          kick: () =>
-            new Tone.MembraneSynth({
-              pitchDecay: 0.2, // Long pitch drop like 808
-              octaves: 8,
-              oscillator: { type: "sine" },
-              envelope: {
-                attack: 0.001,
-                decay: 1,
-                sustain: 0.1,
-                release: 1.5,
-              },
-            })
-              .toDestination(),
-          snare: () =>
-            new Tone.NoiseSynth({
-              envelope: {
-                attack: 0.003,
-                decay: 0.18,
-                sustain: 0,
-                release: 0.02,
-              },
-            })
-              .toDestination(),
-          closedHat: () =>
-            new Tone.MetalSynth({
-              envelope: { attack: 0.0005, decay: 0.07, release: 0.005 },
-              harmonicity: 15,
-              resonance: 1100,
-            })
-              .toDestination(),
-          openHat: () =>
-            new Tone.MetalSynth({
-              envelope: { attack: 0.0005, decay: 0.3, release: 0.05 },
-              harmonicity: 14,
-              resonance: 1050,
-            })
-              .toDestination(),
-        },
-        rock: {
-          // Punchy kick, lower-pitched snare
-          kick: () =>
-            new Tone.MembraneSynth({
-              pitchDecay: 0.06,
-              octaves: 5,
-              oscillator: { type: "sine" },
-              envelope: {
-                attack: 0.001,
-                decay: 0.35,
-                sustain: 0,
-                release: 0.9,
-              },
-            })
-              .toDestination(),
-          snare: () =>
-            new Tone.NoiseSynth({
-              envelope: {
-                attack: 0.002,
-                decay: 0.22,
-                sustain: 0,
-                release: 0.03,
-              },
-            })
-              .toDestination(),
-          closedHat: () =>
-            new Tone.MetalSynth({
-              envelope: { attack: 0.002, decay: 0.13, release: 0.02 },
-              harmonicity: 11,
-              resonance: 750,
-            })
-              .toDestination(),
-          openHat: () =>
-            new Tone.MetalSynth({
-              envelope: { attack: 0.002, decay: 0.45, release: 0.08 },
-              harmonicity: 10,
-              resonance: 800,
-            })
-              .toDestination(),
-        },
-        electronic: {
-          // 909/808 hybrid, clean and punchy
-          kick: () =>
-            new Tone.MembraneSynth({
-              pitchDecay: 0.09,
-              octaves: 7,
-              oscillator: { type: "sine" },
-              envelope: {
-                attack: 0.001,
-                decay: 0.45,
-                sustain: 0.08,
-                release: 1.2,
-              },
-            })
-              .toDestination(),
-          snare: () =>
-            new Tone.NoiseSynth({
-              envelope: {
-                attack: 0.002,
-                decay: 0.2,
-                sustain: 0,
-                release: 0.01,
-              },
-            })
-              .toDestination(),
-          closedHat: () =>
-            new Tone.MetalSynth({
-              envelope: { attack: 0.001, decay: 0.1, release: 0.01 },
-              harmonicity: 12,
-              resonance: 850,
-            })
-              .toDestination(),
-          openHat: () =>
-            new Tone.MetalSynth({
-              envelope: { attack: 0.001, decay: 0.32, release: 0.05 },
-              harmonicity: 11,
-              resonance: 900,
-            })
-              .toDestination(),
-        },
-        latino: {
-          // Tight, high-pitched kick with quick decay
-          kick: () =>
-            new Tone.MembraneSynth({
-              pitchDecay: 0.07,
-              octaves: 5.5,
-              oscillator: { type: "sine" },
-              envelope: {
-                attack: 0.001,
-                decay: 0.32,
-                sustain: 0,
-                release: 0.7,
-              },
-            })
-              .toDestination(),
-          snare: () =>
-            new Tone.NoiseSynth({
-              envelope: {
-                attack: 0.003,
-                decay: 0.16,
-                sustain: 0,
-                release: 0.02,
-              },
-            })
-              .toDestination(),
-          closedHat: () =>
-            new Tone.MetalSynth({
-              envelope: { attack: 0.0008, decay: 0.09, release: 0.01 },
-              harmonicity: 13,
-              resonance: 950,
-            })
-              .toDestination(),
-          openHat: () =>
-            new Tone.MetalSynth({
-              envelope: { attack: 0.001, decay: 0.38, release: 0.06 },
-              harmonicity: 12,
-              resonance: 920,
-            })
-              .toDestination(),
-        },
-        pop: {
-          // Standard 909/808 hybrid, balanced sound
-          kick: () =>
-            new Tone.MembraneSynth({
-              pitchDecay: 0.08,
-              octaves: 6,
-              oscillator: { type: "sine" },
-              envelope: {
-                attack: 0.001,
-                decay: 0.4,
-                sustain: 0.1,
-                release: 1.2,
-              },
-            })
-              .toDestination(),
-          snare: () =>
-            new Tone.NoiseSynth({
-              envelope: {
-                attack: 0.001,
-                decay: 0.2,
-                sustain: 0,
-                release: 0.01,
-              },
-            })
-              .toDestination(),
-          closedHat: () =>
-            new Tone.MetalSynth({
-              envelope: { attack: 0.001, decay: 0.12, release: 0.01 },
-              harmonicity: 12,
-              resonance: 800,
-            })
-              .toDestination(),
-          openHat: () =>
-            new Tone.MetalSynth({
-              envelope: { attack: 0.001, decay: 0.3, release: 0.05 },
-              harmonicity: 10,
-              resonance: 900,
-            })
-              .toDestination(),
-        },
-      };
-
-      const config = configs[userDrumKit] || configs.electronic;
-
-      return {
-        kick: config.kick(),
-        snare: config.snare(),
-        closedHat: config.closedHat(),
-        openHat: config.openHat(),
-      };
-    },
-    []
-  );
-
-  // Initialize drum synths based on user-selected drumKit
-  const initDrums = useCallback(
-    async (userDrumKit: "rock" | "pop" | "electronic" | "latino" | "rap-trap") => {
-      if (synthInitRef.current) return;
+  // Initialize drum samplers based on user-selected drumKit and prompt analysis
+  const initDrumSamplers = useCallback(
+    async (userDrumKit: "rock" | "pop" | "electronic" | "latino" | "rap-trap", userPrompt: string) => {
+      if (samplerInitRef.current) return;
 
       if (Tone.context.state !== "running") {
         await Tone.start();
       }
 
-      const kit = createDrumKit(userDrumKit);
-      if (!kit) return;
+      setIsLoadingSamples(true);
+      setSamplesLoadingProgress(0);
 
-      // Set volumes
-      kit.kick.volume.value = -6;
-      kit.snare.volume.value = -8;
-      kit.closedHat.volume.value = -10;
-      kit.openHat.volume.value = -9;
-
-      drumSynths.current = {
-        kick: kit.kick as Tone.MembraneSynth,
-        snare: kit.snare as Tone.NoiseSynth,
-        closedHat: kit.closedHat as Tone.MetalSynth,
-        openHat: kit.openHat as Tone.MetalSynth,
-      };
-
-      synthInitRef.current = true;
+      try {
+        // Load samples from the selected genre folder
+        const kit = await createDrumKitSampler(userDrumKit as DrumGenre, userPrompt);
+        drukitSamplerRef.current = kit;
+        samplerInitRef.current = true;
+        setSamplesLoadingProgress(100);
+        setIsLoadingSamples(false);
+        return kit;
+      } catch (error) {
+        console.error("Failed to initialize drum samplers:", error);
+        setIsLoadingSamples(false);
+        alert("Failed to load high-quality samples. Using fallback sounds.");
+        return null;
+      }
     },
-    [createDrumKit]
+    []
   );
 
-  // Trigger drum sounds with proper envelope timing (fixes Hi-Hat pitch glitch)
-  const triggerDrum = useCallback((instrument: string, time: number) => {
+  // Trigger drum sample
+  const triggerDrumSound = useCallback((instrument: string, time: number) => {
+    const sampler = drukitSamplerRef.current;
+    if (!sampler) return;
+
     switch (instrument) {
       case "Kick":
-        // Use triggerAttackRelease for clean envelope
-        drumSynths.current.kick?.triggerAttackRelease("C1", "0.5", time);
+        triggerDrumSample(sampler.kick, time, "8n");
         break;
       case "Snare":
-        // Short, crisp snare hit
-        drumSynths.current.snare?.triggerAttackRelease("32n", time);
+        triggerDrumSample(sampler.snare, time, "16n");
         break;
       case "ClosedHat":
-        // FIXED: Use triggerAttackRelease instead of separate triggerAttack/triggerRelease
-        // This prevents pitch glitches and ensures envelope resets properly
-        drumSynths.current.closedHat?.triggerAttackRelease("64n", time);
+        triggerDrumSample(sampler.closedHat, time, "32n");
         break;
       case "OpenHat":
-        // FIXED: Use triggerAttackRelease for proper envelope handling
-        drumSynths.current.openHat?.triggerAttackRelease("32n", time);
+        triggerDrumSample(sampler.openHat, time, "16n");
         break;
     }
   }, []);
@@ -337,7 +119,12 @@ export default function BeatGeneratorPage() {
     if (!beatData || isPlaying) return;
 
     try {
-      await initDrums(drumKit);
+      // Initialize samplers with prompt for intelligent sample selection
+      const samplers = await initDrumSamplers(drumKit, prompt);
+      if (!samplers) {
+        alert("Failed to load samples. Please try again.");
+        return;
+      }
 
       setIsPlaying(true);
       setCurrentStep(0);
@@ -360,7 +147,7 @@ export default function BeatGeneratorPage() {
         // Trigger drums for this step
         beatData.tracks.forEach((track) => {
           if (track.steps[step % totalSteps]) {
-            triggerDrum(track.instrument, time);
+            triggerDrumSound(track.instrument, time);
           }
         });
 
@@ -375,7 +162,7 @@ export default function BeatGeneratorPage() {
       setIsPlaying(false);
       alert("Failed to start playback. Please try again.");
     }
-  }, [beatData, isPlaying, initDrums, triggerDrum, drumKit]);
+  }, [beatData, isPlaying, initDrumSamplers, triggerDrumSound, prompt, drumKit]);
 
   // Stop beat
   const stopBeat = useCallback(() => {
@@ -390,15 +177,18 @@ export default function BeatGeneratorPage() {
       }
 
       // Release all sounds
-      Object.values(drumSynths.current).forEach((synth) => {
-        if (synth) {
-          try {
-            (synth as any).triggerRelease?.();
-          } catch (e) {
-            // Ignore errors
+      if (drukitSamplerRef.current) {
+        const { kick, snare, closedHat, openHat } = drukitSamplerRef.current;
+        [kick, snare, closedHat, openHat].forEach((sampler) => {
+          if (sampler) {
+            try {
+              sampler.triggerRelease?.();
+            } catch (e) {
+              // Ignore errors
+            }
           }
-        }
-      });
+        });
+      }
 
       setIsPlaying(false);
       setCurrentStep(0);
@@ -414,8 +204,9 @@ export default function BeatGeneratorPage() {
       return;
     }
 
-    // Reset synth initialization when generating new beat
-    synthInitRef.current = false;
+    // Reset sampler initialization when generating new beat
+    samplerInitRef.current = false;
+    clearSampleCache();
 
     setIsLoading(true);
     try {
@@ -471,6 +262,7 @@ export default function BeatGeneratorPage() {
       if (isPlaying) {
         stopBeat();
       }
+      clearSampleCache();
     };
   }, [isPlaying, stopBeat]);
 
@@ -644,15 +436,46 @@ export default function BeatGeneratorPage() {
                     Playback
                   </h3>
 
+                  {/* Loading Samples Status */}
+                  {isLoadingSamples && (
+                    <div className="mb-4 p-3 rounded-2xl bg-[#00f5d4]/10 border border-[#00f5d4]/30">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Loader size={14} className="text-[#00f5d4] animate-spin" />
+                        <span className="text-xs font-bold text-[#00f5d4]">
+                          Loading High-Quality Samples...
+                        </span>
+                      </div>
+                      <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                        <motion.div
+                          className="h-full bg-[#00f5d4]"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${samplesLoadingProgress}%` }}
+                          transition={{ duration: 0.3 }}
+                        />
+                      </div>
+                      <p className="text-[10px] text-white/40 mt-2">
+                        {samplesLoadingProgress}% - {["Resolving samples...", "Pre-buffering audio...", "Almost ready..."][Math.floor(samplesLoadingProgress / 40)] || "Finalizing..."}
+                      </p>
+                    </div>
+                  )}
+
                   <button
                     onClick={isPlaying ? stopBeat : playBeat}
+                    disabled={isLoadingSamples}
                     className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-black text-sm transition-all ${
                       isPlaying
                         ? "bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30"
-                        : "bg-[#00f5d4] text-black border border-[#00f5d4] hover:scale-[1.02]"
+                        : isLoadingSamples
+                          ? "bg-white/10 text-white/40 border border-white/10 cursor-not-allowed"
+                          : "bg-[#00f5d4] text-black border border-[#00f5d4] hover:scale-[1.02]"
                     }`}
                   >
-                    {isPlaying ? (
+                    {isLoadingSamples ? (
+                      <>
+                        <Loader size={16} className="animate-spin" />
+                        Loading Samples...
+                      </>
+                    ) : isPlaying ? (
                       <>
                         <Square size={16} />
                         Stop
@@ -677,6 +500,12 @@ export default function BeatGeneratorPage() {
                       <span className="text-white/40">Kit Type:</span>
                       <span className="text-[#00f5d4] font-bold capitalize">
                         {beatData.kitType}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-white/40">Kit Genre:</span>
+                      <span className="text-[#00f5d4] font-bold capitalize">
+                        {drumKit}
                       </span>
                     </div>
                     <div className="flex justify-between text-xs">
