@@ -19,6 +19,7 @@ const studioTools = [
   { name: "Prompting Effects", href: "/prompting-effects" },
   { name: "Voice to Notes", href: "/voice-to-notes" },
   { name: "Melody Generator", href: "/melody-generator" },
+  { name: "Beat Generator", href: "/beat-generator" },
 ];
 
 const commonLinks = [
