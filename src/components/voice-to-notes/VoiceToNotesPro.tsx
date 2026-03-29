@@ -638,7 +638,7 @@ export function VoiceToNotesPro() {
                     step={1}
                     value={silenceThresholdDb}
                     onChange={(e) => setSilenceThresholdDb(Number(e.target.value))}
-                    className="w-full"
+                    className="w-full accent-brand-start"
                   />
                   <span className="block text-white/70 font-medium">{silenceThresholdDb} dB</span>
                 </label>
@@ -653,7 +653,7 @@ export function VoiceToNotesPro() {
                     step={0.01}
                     value={minFrameConfidence}
                     onChange={(e) => setMinFrameConfidence(Number(e.target.value))}
-                    className="w-full"
+                    className="w-full accent-brand-start"
                   />
                   <span className="block text-white/70 font-medium">{minFrameConfidence.toFixed(2)}</span>
                 </label>
@@ -668,7 +668,7 @@ export function VoiceToNotesPro() {
                     step={5}
                     value={gapFillMs}
                     onChange={(e) => setGapFillMs(Number(e.target.value))}
-                    className="w-full"
+                    className="w-full accent-brand-start"
                   />
                   <span className="block text-white/70 font-medium">{gapFillMs} ms</span>
                 </label>
@@ -683,7 +683,7 @@ export function VoiceToNotesPro() {
                     step={1}
                     value={pitchCentsTolerance}
                     onChange={(e) => setPitchCentsTolerance(Number(e.target.value))}
-                    className="w-full"
+                    className="w-full accent-brand-start"
                   />
                   <span className="block text-white/70 font-medium">{pitchCentsTolerance} cents</span>
                 </label>
@@ -769,7 +769,7 @@ export function VoiceToNotesPro() {
                     step={1}
                     value={pitchBendRangeSemis}
                     onChange={(e) => setPitchBendRangeSemis(Number(e.target.value))}
-                    className="w-full"
+                    className="w-full accent-brand-start"
                   />
                   <div className="text-white/70 font-medium">{pitchBendRangeSemis} semis</div>
                 </label>
@@ -785,7 +785,7 @@ export function VoiceToNotesPro() {
                       type="checkbox"
                       checked={includeExpressionCC7}
                       onChange={(e) => setIncludeExpressionCC7(e.target.checked)}
-                      className="w-5 h-5 accent-[#00f5d4]"
+                      className="w-5 h-5 accent-brand-start"
                     />
                   </div>
                 </label>

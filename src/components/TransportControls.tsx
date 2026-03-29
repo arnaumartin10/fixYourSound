@@ -45,7 +45,7 @@ export function TransportControls({
         type="button"
         onClick={() => void onPlayProcessed()}
         disabled={processedDisabled}
-        className="inline-flex items-center justify-center gap-2 rounded-lg border border-brand-start/40 bg-brand-start/10 px-4 py-3 text-sm text-brand-start hover:bg-brand-start/20 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-start shadow-[0_0_15px_rgba(255,107,53,0.1)]"
+        className="inline-flex items-center justify-center gap-2 rounded-lg border border-brand-start/40 bg-brand-start/10 px-4 py-3 text-sm text-brand-start hover:bg-brand-start/20 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-start shadow-[0_0_15px_rgba(0,245,212,0.1)]"
       >
         {isProcessedPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
         {isProcessedPlaying ? "Pause Processed" : "Play Processed"}

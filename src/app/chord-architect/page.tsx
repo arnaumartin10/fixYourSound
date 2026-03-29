@@ -98,7 +98,7 @@ export default function ChordArchitectPage() {
               <button
                 onClick={handleGenerate}
                 disabled={isLoading}
-                className="w-full group relative flex items-center justify-center gap-2 bg-gradient-to-r from-brand-start to-brand-end text-black px-8 py-4 rounded-2xl font-black text-lg transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(255,107,53,0.3)] disabled:opacity-50"
+                className="w-full group relative flex items-center justify-center gap-2 bg-brand-start text-black px-8 py-4 rounded-2xl font-black text-lg transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(0,245,212,0.3)] disabled:opacity-50"
               >
                 {isLoading ? (
                   <span className="h-5 w-5 animate-spin rounded-full border-2 border-black border-t-transparent" />
@@ -131,7 +131,7 @@ export default function ChordArchitectPage() {
                     onClick={() => setActiveIndex(idx)}
                     className={`w-full text-left p-5 rounded-2xl border transition-all duration-300 group relative overflow-hidden ${
                       activeIndex === idx 
-                        ? "bg-brand-start border-brand-start text-black shadow-[0_0_20px_rgba(255,107,53,0.3)]" 
+                        ? "bg-brand-start border-brand-start text-black shadow-[0_0_20px_rgba(0,245,212,0.3)]" 
                         : "bg-white/5 border-white/5 text-white hover:border-brand-start/30"
                     }`}
                   >
