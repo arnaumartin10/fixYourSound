@@ -119,7 +119,13 @@ export default function BeatGeneratorPage() {
     if (!beatData || isPlaying) return;
 
     try {
-      // Initialize samplers with prompt for intelligent sample selection
+      // CRITICAL: Start AudioContext immediately on user gesture (before any async operations)
+      if (Tone.context.state !== "running") {
+        await Tone.start();
+        console.log("✓ AudioContext started:", Tone.context.state);
+      }
+
+      // Now load samplers
       const samplers = await initDrumSamplers(drumKit, prompt);
       if (!samplers) {
         alert("Failed to load samples. Please try again.");
@@ -129,8 +135,8 @@ export default function BeatGeneratorPage() {
       setIsPlaying(true);
       setCurrentStep(0);
 
-      const totalSteps = beatData.tracks[0].steps.length; // Should be 16, 32, or 64
-      const stepDuration = (60 / beatData.tempo) * 0.25; // 16 steps per beat
+      const totalSteps = beatData.tracks[0].steps.length;
+      const stepDuration = (60 / beatData.tempo) * 0.25;
 
       // Cancel existing transport if any
       if (transportRef.current) {

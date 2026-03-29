@@ -1,6 +1,6 @@
 /**
  * Handles loading and managing drum samples from the public folder structure
- * Uses Tone.js Samplers for high-quality sample-based playback
+ * Uses Tone.js Players for high-quality sample-based playback
  */
 
 import * as Tone from "tone";
@@ -10,16 +10,16 @@ export type DrumGenre = "electronic" | "pop" | "rock" | "latino" | "rap-trap";
 export type DrumType = "kick" | "snare" | "closed-hihat" | "open-hihat";
 
 interface SampleCache {
-  sampler: Tone.Sampler;
+  player: Tone.Player | SynthDrumFallback;
   isReady: boolean;
   error?: string;
 }
 
 interface DrumKitSampler {
-  kick: Tone.Sampler;
-  snare: Tone.Sampler;
-  closedHat: Tone.Sampler;
-  openHat: Tone.Sampler;
+  kick: Tone.Player | SynthDrumFallback;
+  snare: Tone.Player | SynthDrumFallback;
+  closedHat: Tone.Player | SynthDrumFallback;
+  openHat: Tone.Player | SynthDrumFallback;
   isReady: boolean;
 }
 
@@ -28,7 +28,6 @@ const sampleCache = new Map<string, SampleCache>();
 
 /**
  * Resolve the path to a sample based on genre and drum type
- * Uses intelligent selection based on available samples and prompt analysis
  */
 export async function resolveSamplePath(
   genre: DrumGenre,
@@ -36,7 +35,6 @@ export async function resolveSamplePath(
   prompt: string
 ): Promise<string> {
   try {
-    // Get list of available samples from the API
     const response = await fetch(
       `/api/list-drum-samples?genre=${encodeURIComponent(genre)}&drumType=${encodeURIComponent(drumType)}`
     );
@@ -71,156 +69,155 @@ export async function resolveSamplePath(
 
 /**
  * Get fallback sample path for a drum type
- * Used when specific genre sample is not found
  */
 export function getFallbackSamplePath(drumType: DrumType): string {
-  // Return first available file in electronic kit (most universal)
-  // This will be resolved by the initializeSampler function
-  // We return a special marker that tells the loader to use any available file
   return `/sounds/drum-kits/electronic/${drumType}/`;
 }
 
 /**
  * Create a synthesized drum sound as fallback when samples fail to load
- * Returns an object that mimics Tone.Sampler interface for compatibility
+ */
+class SynthDrumFallback {
+  private synth: Tone.PolySynth;
+  private noise: Tone.Noise | null = null;
+  private metalSynth: Tone.MetalSynth | null = null;
+  private drumType: DrumType;
+
+  constructor(drumType: DrumType, volumeDb: number = 0) {
+    this.drumType = drumType;
+
+    // Create poly synth for melodic drums (kick)
+    this.synth = new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: "sine" },
+      envelope: { attack: 0.001, decay: 0.2, sustain: 0, release: 0.059 },
+    }).toDestination();
+
+    this.synth.volume.value = volumeDb;
+
+    if (drumType === "snare") {
+      this.noise = new Tone.Noise("white").toDestination();
+      this.noise.volume.value = volumeDb;
+    } else if (drumType === "closed-hihat" || drumType === "open-hihat") {
+      this.metalSynth = new Tone.MetalSynth({
+        envelope: {
+          attack: 0.001,
+          decay: drumType === "open-hihat" ? 0.3 : 0.08,
+          release: 0.01,
+        },
+        harmonicity: 12,
+        resonance: 3000,
+      }).toDestination();
+      this.metalSynth.volume.value = volumeDb;
+    }
+  }
+
+  triggerAttackRelease(note: string, duration: string | number, time?: number): void {
+    const now = typeof time === "number" ? time : Tone.now();
+
+    if (this.drumType === "kick") {
+      // Kick drum: simple attack and release
+      this.synth.triggerAttackRelease("C1", duration, now);
+    } else if (this.drumType === "snare" && this.noise) {
+      // Snare: noise burst
+      this.noise.start(now);
+      this.noise.stop(now + 0.15);
+    } else if (
+      (this.drumType === "closed-hihat" || this.drumType === "open-hihat") &&
+      this.metalSynth
+    ) {
+      // Hi-hat: metallic click
+      this.metalSynth.triggerAttackRelease(duration, now);
+    }
+  }
+
+  toDestination(): this {
+    return this;
+  }
+
+  dispose(): void {
+    this.synth.dispose();
+    if (this.noise) this.noise.dispose();
+    if (this.metalSynth) this.metalSynth.dispose();
+  }
+}
+
+/**
+ * Create a synthesized drum sound as fallback
  */
 function createSynthDrum(
   drumType: DrumType,
   volumeDb: number = 0
-): any {
-  const synthOutput = new Tone.Synth({
-    oscillator: { type: "sine" },
-    envelope: { attack: 0.001, decay: 0.2, sustain: 0, release: 0.059 },
-  }).toDestination();
-
-  synthOutput.volume.value = volumeDb;
-
-  // Return object that mimics Tone.Sampler
-  return {
-    triggerAttackRelease: (duration: string | number, time?: number) => {
-      if (drumType === "kick") {
-        // Kick: pitch sweep from 150Hz to 50Hz
-        synthOutput.frequency.setValueAtTime(150, "+0");
-        synthOutput.frequency.exponentialRampToValueAtTime(50, "+0.1");
-        synthOutput.triggerAttackRelease(duration, time);
-      } else if (drumType === "snare") {
-        // Snare: use noise instead
-        if (!(window as any).__snareNoise) {
-          (window as any).__snareNoise = new Tone.Noise("white").toDestination();
-          (window as any).__snareNoise.volume.value = volumeDb;
-        }
-        const snareEnv = new Tone.Envelope({
-          attack: 0.001,
-          decay: 0.15,
-          sustain: 0,
-          release: 0.01,
-        });
-        snareEnv.attach((window as any).__snareNoise);
-        snareEnv.triggerAttackRelease(duration, time);
-      } else if (drumType === "closed-hihat" || drumType === "open-hihat") {
-        // Hi-hat: metallic sound
-        if (!(window as any).__hatSynth) {
-          (window as any).__hatSynth = new Tone.MetalSynth({
-            frequency: 150,
-            envelope: {
-              attack: 0.001,
-              decay: 0.08,
-              release: 0.01,
-            },
-            harmonicity: 12,
-            resonance: 3000,
-            volume: volumeDb,
-          }).toDestination();
-        }
-        (window as any).__hatSynth.triggerAttackRelease(duration, time);
-      }
-    },
-    // Add standard Tone.Sampler properties for compatibility
-    toDestination: () => synthOutput,
-    dispose: () => synthOutput.dispose(),
-  };
+): SynthDrumFallback {
+  return new SynthDrumFallback(drumType, volumeDb);
 }
 
 /**
- * Create an audio buffer for a drum sample
- * This is a utility for potential future processing
- */
-function createAudioBuffer(sampleRate: number, length: number): AudioBuffer {
-  const context = Tone.context;
-  return context.createBuffer(1, length, sampleRate);
-}
-
-/**
- * Initialize a Sampler for a specific drum type
- * Handles loading with fallback mechanism
+ * Initialize a Player for a specific drum type
+ * Uses Tone.Player for simple one-shot playback
  */
 async function initializeSampler(
   genre: DrumGenre,
   drumType: DrumType,
   prompt: string,
   volumeDb: number = 0
-): Promise<Tone.Sampler> {
+): Promise<Tone.Player | SynthDrumFallback> {
   const cacheKey = `${genre}-${drumType}`;
 
   // Check cache first
   if (sampleCache.has(cacheKey)) {
     const cached = sampleCache.get(cacheKey)!;
     if (cached.isReady) {
-      return cached.sampler;
+      return cached.player;
     }
   }
-
-  // Determine which sample to use based on prompt analysis
-  const analysis = analyzePrompt(prompt);
-  const selectedIndex = selectSampleIndex(analysis, 5);
 
   // Build the primary path
   const primaryPath = await resolveSamplePath(genre, drumType, prompt);
 
-  // Try to create sampler with primary sample
+  // Try to create player with primary sample
   try {
-    const sampler = new Tone.Sampler({
-      urls: {
-        C4: primaryPath,
+    const player = new Tone.Player({
+      url: primaryPath,
+      onload: () => {
+        console.log(`✓ Sample loaded for ${genre}/${drumType}: ${primaryPath}`);
       },
-      baseUrl: "/",
     }).toDestination();
 
-    sampler.volume.value = volumeDb;
+    player.volume.value = volumeDb;
 
-    // Wait for sampler to load (with timeout)
+    // Wait for player to load
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error(`Timeout loading ${primaryPath}`));
-      }, 5000);
+      }, 8000);
 
-      // Tone.Sampler has a promise-like interface, we can trigger loading behavior
-      // by attempting to use it. For now, we'll just wait a bit and resolve
       const startTime = Date.now();
       const checkInterval = setInterval(() => {
-        // Check if buffer has been loaded
-        if ((sampler as any)._buffers && Object.keys((sampler as any)._buffers).length > 0) {
+        const isLoaded = (player as any).loaded;
+        
+        if (isLoaded) {
           clearInterval(checkInterval);
           clearTimeout(timeout);
+          console.log(`✓ Buffer ready for ${genre}/${drumType}`);
           resolve();
-        } else if (Date.now() - startTime > 4000) {
-          // If it doesn't load after 4 seconds, continue anyway
+        } else if (Date.now() - startTime > 7000) {
           clearInterval(checkInterval);
           clearTimeout(timeout);
+          console.warn(`⚠ Timeout loading ${genre}/${drumType}, continuing anyway`);
           resolve();
         }
-      }, 100);
+      }, 300);
     });
 
     sampleCache.set(cacheKey, {
-      sampler,
+      player,
       isReady: true,
     });
 
     console.log(`✓ Loaded ${genre}/${drumType}`);
-    return sampler;
+    return player;
   } catch (error) {
-    console.warn(`Failed to load ${genre}/${drumType}, using fallback:`, error);
+    console.warn(`Failed to load ${genre}/${drumType}, trying fallback:`, error);
 
     // Try fallback: electronic kit
     try {
@@ -239,77 +236,71 @@ async function initializeSampler(
         throw new Error("No fallback files available");
       }
 
-      // Use the first available file
       const fallbackFile = fallbackFiles[0];
       const fallbackPath = `/sounds/drum-kits/electronic/${drumType}/${fallbackFile}`;
 
-      const fallbackSampler = new Tone.Sampler({
-        urls: {
-          C4: fallbackPath,
-        },
-        baseUrl: "/",
+      const fallbackPlayer = new Tone.Player({
+        url: fallbackPath,
       }).toDestination();
 
-      fallbackSampler.volume.value = volumeDb;
+      fallbackPlayer.volume.value = volumeDb;
 
-      // Wait for fallback sampler to load
+      // Wait for fallback player to load
       await new Promise<void>((resolve) => {
         const timeout = setTimeout(() => {
-          resolve(); // Resolve anyway after 3 seconds
-        }, 3000);
+          resolve();
+        }, 5000);
 
         const checkInterval = setInterval(() => {
-          if (
-            (fallbackSampler as any)._buffers &&
-            Object.keys((fallbackSampler as any)._buffers).length > 0
-          ) {
+          const isLoaded = (fallbackPlayer as any).loaded;
+          
+          if (isLoaded) {
             clearInterval(checkInterval);
             clearTimeout(timeout);
             resolve();
           }
-        }, 100);
+        }, 300);
       });
 
       sampleCache.set(cacheKey, {
-        sampler: fallbackSampler,
+        player: fallbackPlayer,
         isReady: true,
       });
 
       console.log(`✓ Loaded fallback for ${drumType}`);
-      return fallbackSampler;
+      return fallbackPlayer;
     } catch (fallbackError) {
-      console.error(`Fallback samples also failed for ${drumType}:`, fallbackError);
+      console.error(`Fallback also failed for ${drumType}:`, fallbackError);
       console.log(`Using synthesis fallback for ${drumType}`);
 
-      // Use synthesized drums as fallback
       const synthSampler = createSynthDrum(drumType, volumeDb);
 
       sampleCache.set(cacheKey, {
-        sampler: synthSampler as any,
+        player: synthSampler as any,
         isReady: true,
         error: `Using synthesis: ${String(fallbackError)}`,
       });
 
-      return synthSampler as any;
+      return synthSampler;
     }
   }
 }
 
 /**
- * Create a complete drum kit using Samplers
- * Loads all 4 drum types for the selected genre
+ * Create a complete drum kit using Players
  */
 export async function createDrumKitSampler(
   genre: DrumGenre,
   prompt: string
 ): Promise<DrumKitSampler> {
   try {
-    // Ensure Tone is started
+    // AudioContext should already be started by the time this is called (from playBeat)
+    // Just verify it's running
     if (Tone.context.state !== "running") {
+      console.warn("AudioContext not running, attempting to start...");
       await Tone.start();
     }
 
-    // Volume levels for each drum
     const volumes = {
       kick: -6,
       snare: -8,
@@ -317,7 +308,6 @@ export async function createDrumKitSampler(
       openHat: -9,
     };
 
-    // Load all 4 drums in parallel
     const [kick, snare, closedHat, openHat] = await Promise.all([
       initializeSampler(genre, "kick", prompt, volumes.kick),
       initializeSampler(genre, "snare", prompt, volumes.snare),
@@ -339,11 +329,15 @@ export async function createDrumKitSampler(
 }
 
 /**
- * Clear the sample cache (useful on unmount or kit change)
+ * Clear the sample cache
  */
 export function clearSampleCache(): void {
-  sampleCache.forEach(({ sampler }) => {
-    sampler.dispose();
+  sampleCache.forEach(({ player }) => {
+    if (player instanceof Tone.Player) {
+      player.dispose();
+    } else if (player instanceof SynthDrumFallback) {
+      player.dispose();
+    }
   });
   sampleCache.clear();
 }
@@ -351,29 +345,57 @@ export function clearSampleCache(): void {
 /**
  * Trigger a drum sample with proper timing
  */
+/**
+ * Trigger a drum sample with proper timing
+ * Clones the player each time to allow repeated playback
+ */
 export function triggerDrumSample(
-  sampler: Tone.Sampler | null,
+  player: any,
   time: number,
   duration: string = "8n"
 ): void {
-  if (!sampler) return;
+  if (!player) return;
 
   try {
-    sampler.triggerAttackRelease("C4", duration, time);
+    // Check if it's a SynthDrumFallback
+    if (player instanceof SynthDrumFallback) {
+      player.triggerAttackRelease("C4", duration, time);
+      return;
+    }
+
+    // For Tone.Players, clone and trigger each time
+    if (player instanceof Tone.Player) {
+      try {
+        // Clone the player so we can play it again
+        const clone = player.clone();
+        
+        // Schedule the clone to play at the specified time
+        clone.start(time);
+        
+        // Clean up after playback completes
+        const durationSecs = Tone.Time(duration).toSeconds();
+        Tone.Transport.scheduleOnce(() => {
+          clone.dispose();
+        }, `+${durationSecs}`, time);
+        
+        console.debug(`▶ Playing drum sample at ${time}`);
+      } catch (err) {
+        console.debug("Error cloning/triggering drum sample:", err);
+      }
+    }
   } catch (error) {
-    console.warn("Error triggering drum sample:", error);
+    console.warn("Error in triggerDrumSample:", error);
   }
 }
 
 /**
  * Get loading progress for samples
- * Returns percentage ready (0-100)
  */
 export function getSamplesLoadingProgress(kitSampler: Partial<DrumKitSampler>): number {
   const drums = ["kick", "snare", "closedHat", "openHat"] as const;
   const readyCount = drums.filter((drum) => {
-    const sampler = kitSampler[drum];
-    return sampler && sampler.loaded;
+    const player = kitSampler[drum];
+    return player !== undefined;
   }).length;
 
   return Math.round((readyCount / 4) * 100);
