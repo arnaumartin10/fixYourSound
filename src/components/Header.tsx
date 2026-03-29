@@ -2,17 +2,26 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { Logo } from "./Logo";
+import { ChevronDown, Music } from "lucide-react";
+import { useState } from "react";
 
-const navLinks = [
+const mainNavLinks = [
   { name: "Home", href: "/" },
   { name: "Song Analyzer", href: "/song-analyzer" },
+];
+
+const studioTools = [
   { name: "AI Synth", href: "/ai-synth" },
-  { name: "Prompting Audio Effects", href: "/prompting-effects" },
   { name: "Chord Architect", href: "/chord-architect" },
+  { name: "Prompting Effects", href: "/prompting-effects" },
   { name: "Voice to Notes", href: "/voice-to-notes" },
+  { name: "Melody Generator", href: "/melody-generator" },
+];
+
+const commonLinks = [
   { name: "Learning Hub", href: "/learning-hub", wip: true },
   { name: "Community", href: "/community", wip: true },
 ];
@@ -20,7 +29,10 @@ const navLinks = [
 export const Header = () => {
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const isStudioToolActive = studioTools.some(tool => pathname === tool.href);
+  
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/5">
       <div className="container mx-auto px-6 h-16 flex items-center justify-between">
@@ -28,7 +40,88 @@ export const Header = () => {
           <Logo />
         </Link>
         <nav className="hidden md:flex items-center space-x-8">
-          {navLinks.map((link) => {
+          {mainNavLinks.map((link) => {
+            const isActive = pathname === link.href;
+            return (
+              <div key={link.name} className="relative group/item">
+                <Link
+                  href={link.href}
+                  className={`text-sm font-medium transition-all duration-300 ${
+                    isActive ? "text-[#00f5d4]" : "text-white/60 hover:text-white"
+                  }`}
+                >
+                  {link.name}
+                  {isActive && (
+                    <motion.div
+                      layoutId="active-nav"
+                      className="absolute -bottom-[21px] left-0 right-0 h-0.5 bg-[#00f5d4] shadow-[0_0_12px_rgba(0,245,212,0.8)]"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                </Link>
+              </div>
+            );
+          })}
+
+          {/* Studio Tools Dropdown */}
+          <div className="relative group/dropdown">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              onMouseEnter={() => setIsDropdownOpen(true)}
+              onMouseLeave={() => setIsDropdownOpen(false)}
+              className={`flex items-center gap-2 text-sm font-medium transition-all duration-300 ${
+                isStudioToolActive ? "text-[#00f5d4]" : "text-white/60 hover:text-white"
+              }`}
+            >
+              <Music size={16} />
+              Studio
+              <ChevronDown size={14} className={`transition-transform duration-300 ${isDropdownOpen ? "rotate-180" : ""}`} />
+              {isStudioToolActive && (
+                <motion.div
+                  layoutId="active-nav"
+                  className="absolute -bottom-[21px] left-0 right-0 h-0.5 bg-[#00f5d4] shadow-[0_0_12px_rgba(0,245,212,0.8)]"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                />
+              )}
+            </button>
+
+            {/* Dropdown Menu */}
+            <AnimatePresence>
+              {isDropdownOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  onMouseEnter={() => setIsDropdownOpen(true)}
+                  onMouseLeave={() => setIsDropdownOpen(false)}
+                  className="absolute top-full left-0 mt-2 w-56 bg-[#0a0a0a]/95 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50"
+                >
+                  {studioTools.map((tool, index) => {
+                    const isActive = pathname === tool.href;
+                    return (
+                      <motion.div key={tool.href} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: index * 0.05 }}>
+                        <Link
+                          href={tool.href}
+                          onClick={() => setIsDropdownOpen(false)}
+                          className={`flex items-center px-4 py-3 text-sm font-medium transition-all duration-200 border-l-2 ${
+                            isActive
+                              ? "bg-[#00f5d4]/10 border-[#00f5d4] text-[#00f5d4]"
+                              : "border-transparent text-white/70 hover:text-white hover:bg-white/5"
+                          }`}
+                        >
+                          {tool.name}
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Other Links */}
+          {commonLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <div key={link.name} className="relative group/item">

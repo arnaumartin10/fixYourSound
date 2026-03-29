@@ -244,7 +244,10 @@ export default function AISynthPage() {
     synth.chain(filter, delay, reverb);
     lfoGain.connect(filter.frequency);
     synth.volume.value = -8;
-    lfo.start(); subOsc.connect(subGain); subGain.connect(filter); subOsc.start();
+    lfo.start();
+    subOsc.connect(subGain);
+    subGain.connect(filter);
+    // IMPORTANT: ONLY start the subOsc when it's needed (gain > 0), not immediately
     synthRef.current = { synth, filter, reverb, delay, lfo, lfoGain, subOsc, subGain };
     setSynthInit(true);
   }, [synthInit]);
@@ -325,7 +328,16 @@ export default function AISynthPage() {
     if (reverb) reverb.wet.value = n(p.reverb, 0.3);
     setOctaveShift(p.isBass && p.oscillator === "sine" ? -2 : 0);
     if (subOsc && subGain) {
-      subGain.gain.value = p.subOscillator ? 0.6 : 0;
+      const targetGain = p.subOscillator ? 0.6 : 0;
+      subGain.gain.value = targetGain;
+      
+      // IMPORTANT FIX: Start/stop the subOsc based on whether it's being used
+      if (p.subOscillator && !subOsc.state.started) {
+        try { subOsc.start(); } catch (e) { /* Already started or error */ }
+      } else if (!p.subOscillator && subOsc.state.started) {
+        try { subOsc.stop(); } catch (e) { /* Already stopped or error */ }
+      }
+      
       if (p.subOscillator) subOsc.frequency.value = Tone.Frequency("C3").transpose(n(p.subOctave, -12)).toFrequency();
     }
   }, []);
@@ -415,6 +427,18 @@ export default function AISynthPage() {
 
   const stopAllNotes = useCallback(() => {
     try { synthRef.current.synth?.releaseAll(); } catch {}
+    
+    // CRITICAL FIX: Stop the sub-oscillator if it's playing
+    try {
+      if (synthRef.current.subOsc?.state.started) {
+        synthRef.current.subOsc.stop();
+      }
+    } catch {}
+    
+    // Ensure all gains are set to 0 to eliminate any residual audio
+    try { synthRef.current.subGain?.gain.setValueAtTime(0, Tone.now()); } catch {}
+    try { synthRef.current.lfoGain?.gain.setValueAtTime(0, Tone.now()); } catch {}
+    
     activeNotesRef.current.clear();
     setActiveKeys(new Set());
   }, []);
