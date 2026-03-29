@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { Logo } from "./Logo";
-import { ChevronDown, Music } from "lucide-react";
+import { ChevronDown, Music, BookOpen } from "lucide-react";
 import { useState } from "react";
 
 const mainNavLinks = [
@@ -22,7 +22,6 @@ const studioTools = [
 ];
 
 const commonLinks = [
-  { name: "Learning Hub", href: "/learning-hub", wip: true },
   { name: "Community", href: "/community", wip: true },
 ];
 
@@ -32,6 +31,7 @@ export const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const isStudioToolActive = studioTools.some(tool => pathname === tool.href);
+  const isLearningHubActive = pathname === "/learning-hub";
   
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/5">
@@ -118,6 +118,26 @@ export const Header = () => {
                 </motion.div>
               )}
             </AnimatePresence>
+          </div>
+
+          {/* Learning Hub Link */}
+          <div className="relative group/item">
+            <Link
+              href="/learning-hub"
+              className={`flex items-center gap-2 text-sm font-medium transition-all duration-300 ${
+                isLearningHubActive ? "text-[#00f5d4]" : "text-white/60 hover:text-white"
+              }`}
+            >
+              <BookOpen size={16} />
+              Learning Hub
+              {isLearningHubActive && (
+                <motion.div
+                  layoutId="active-nav"
+                  className="absolute -bottom-[21px] left-0 right-0 h-0.5 bg-[#00f5d4] shadow-[0_0_12px_rgba(0,245,212,0.8)]"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                />
+              )}
+            </Link>
           </div>
 
           {/* Other Links */}
