@@ -36,6 +36,10 @@ export function AudioUploadZone({ onAudioLoad, onFileSelect, isLoading = false }
     }
 
     try {
+      if (Tone.context.state !== "running") {
+        await Tone.start();
+      }
+
       onFileSelect(file);
       setUploadedFile(file);
 
@@ -52,6 +56,10 @@ export function AudioUploadZone({ onAudioLoad, onFileSelect, isLoading = false }
 
   const startRecording = async () => {
     try {
+      if (Tone.context.state !== "running") {
+        await Tone.start();
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 

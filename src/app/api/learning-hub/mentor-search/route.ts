@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       query.toLowerCase().includes(term.toLowerCase())
     );
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
     let systemPrompt = `You are a friendly, peer-to-peer audio production mentor. 
 Explain audio engineering and music production concepts in simple, non-technical language that someone new to music production can understand.
@@ -54,10 +54,15 @@ Suggest they try the ${matchedTerm} card to hear the effect in action!`;
     const prompt = `${systemPrompt}\n\nUser's question: ${query}`;
 
     console.log("Sending to Gemini...");
-    const result = await model.generateContent(prompt);
-    console.log("Gemini response received");
-    
-    const response = result.response.text();
+    let response = "";
+    try {
+      const result = await model.generateContent(prompt);
+      console.log("Gemini response received");
+      response = result.response.text();
+    } catch (apiError) {
+      console.error("Gemini API error:", apiError);
+      response = "Our AI Mentor is resting. Please try again in a moment.";
+    }
     console.log("Response text:", response);
 
     return NextResponse.json({

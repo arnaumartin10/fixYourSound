@@ -41,31 +41,26 @@ export default function LearningHubPage() {
 
   // Initialize Tone.js audio context
   useEffect(() => {
-    const initAudio = async () => {
-      try {
-        await Tone.start();
-        setIsReady(true);
+    try {
+      // Setup global audio chain
+      const masterGain = new Tone.Gain(0.8);
+      // CrossFade: 0 = input A (dry), 1 = input B (wet)
+      const mixer = new Tone.CrossFade(0);
+      const limiter = new Tone.Limiter(-3);
 
-        // Setup global audio chain
-        const masterGain = new Tone.Gain(0.8);
-        // CrossFade: 0 = input A (dry), 1 = input B (wet)
-        const mixer = new Tone.CrossFade(0);
-        const limiter = new Tone.Limiter(-3);
+      masterGainRef.current = masterGain;
+      mixerRef.current = mixer;
+      limiterRef.current = limiter;
 
-        masterGainRef.current = masterGain;
-        mixerRef.current = mixer;
-        limiterRef.current = limiter;
+      // Route to destination
+      mixer.connect(masterGain);
+      masterGain.connect(limiter);
+      limiter.connect(Tone.Destination);
 
-        // Route to destination
-        mixer.connect(masterGain);
-        masterGain.connect(limiter);
-        limiter.connect(Tone.Destination);
-      } catch (error) {
-        console.error("Failed to initialize Tone.js:", error);
-      }
-    };
-
-    initAudio();
+      setIsReady(true);
+    } catch (error) {
+      console.error("Failed to initialize Tone.js:", error);
+    }
 
     return () => {
       // Cleanup
@@ -147,6 +142,11 @@ export default function LearningHubPage() {
   // Play effect
   const playEffect = useCallback(
     async (effectId: string) => {
+      // Ensure Tone.js is running (requires user interaction, which clicking "Play" provides)
+      if (Tone.context.state !== "running") {
+        await Tone.start();
+      }
+
       if (!audioBuffer || !isReady || !mixerRef.current) {
         console.warn("Audio not ready or buffer missing");
         return;
