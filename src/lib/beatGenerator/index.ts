@@ -11,7 +11,6 @@ export {
   triggerDrumSample,
   getSamplesLoadingProgress,
   resolveSamplePath,
-  getFallbackSamplePath,
   type DrumGenre,
   type DrumType,
 } from "./SampleLoader";

@@ -2,7 +2,7 @@
  * Analyzes user prompts to determine sample characteristics and keyword matching
  */
 
-interface PromptAnalysisResult {
+export interface PromptAnalysisResult {
   keywords: string[];
   intensity: number;
   characteristics: {
