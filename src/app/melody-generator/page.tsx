@@ -414,7 +414,7 @@ export default function MelodyGeneratorPage() {
               >
                 <Zap className="text-white/20 mb-4" size={48} />
                 <p className="text-white/40 text-center text-sm">
-                  Complete the inputs and click "Generate Melody" to see your composition
+                  Complete the inputs and click &quot;Generate Melody&quot; to see your composition
                 </p>
               </motion.div>
             )}

@@ -243,11 +243,10 @@ export default function AISynthPage() {
     const subGain = new Tone.Gain(0);
     synth.chain(filter, delay, reverb);
     lfoGain.connect(filter.frequency);
-    synth.volume.value = -8;
+    synth.volume.value = 0;
     lfo.start();
     subOsc.connect(subGain);
     subGain.connect(filter);
-    // IMPORTANT: ONLY start the subOsc when it's needed (gain > 0), not immediately
     synthRef.current = { synth, filter, reverb, delay, lfo, lfoGain, subOsc, subGain };
     setSynthInit(true);
   }, [synthInit]);
@@ -304,7 +303,7 @@ export default function AISynthPage() {
       wah,
       rev
     );
-    sampler.volume.value = -2;
+    sampler.volume.value = 0;
     
     guitarRef.current = { 
       sampler, 
@@ -385,15 +384,44 @@ export default function AISynthPage() {
     if (wah) { wah.frequency.value = n(p.filterFreq, 4500); wah.Q.value = n(p.filterQ, 1); }
   }, []);
 
+  // ── Force Audio Reset ────────────────────────────────────────────────────────
+  const forceAudioReset = useCallback(async () => {
+    if (Tone.context.state === "suspended") {
+      try {
+        await Tone.context.resume();
+      } catch {}
+    }
+    if (Tone.context.state !== "running") {
+      const oldContext = Tone.context.rawContext as AudioContext;
+      if (oldContext.state !== "closed") {
+        try { await oldContext.close(); } catch {}
+      }
+      Tone.context.dispose();
+      Tone.setContext(new Tone.Context());
+      await Tone.start();
+      await Tone.context.resume();
+      setSynthInit(false);
+      setGuitarInit(false);
+      synthRef.current = { synth: null, filter: null, reverb: null, delay: null, lfo: null, lfoGain: null, subOsc: null, subGain: null };
+      guitarRef.current = { sampler: null, liveMic: null, eq: null, amp: null, cab: null, dist: null, chorus: null, delay: null, reverb: null, comp: null, wah: null };
+    }
+  }, []);
+
   // ── Note play/release ────────────────────────────────────────────────────────
-  const playNote = useCallback((key: string) => {
+  const playNote = useCallback(async (key: string) => {
     if (activeNotesRef.current.has(key)) return;
+    
+    if (Tone.context.state !== "running") {
+      await Tone.start();
+      await Tone.context.resume();
+    }
+    
     const note = getFullNote(key);
     if (mode === "synth") {
-      if (!synthInit) { initSynth(); return; }
+      if (!synthInit) { await initSynth(); }
       try { synthRef.current.synth?.triggerAttack(note); } catch {}
     } else {
-      if (!guitarInit) { initGuitar(); return; }
+      if (!guitarInit) { await initGuitar(); }
       try { 
         if (!liveAudio) {
           const now = Tone.now();
@@ -402,7 +430,7 @@ export default function AISynthPage() {
           strumRef.current.time = now;
           strumRef.current.count++;
           
-          const velocity = 0.8 + Math.random() * 0.2; // simulate human pick variation
+          const velocity = 0.8 + Math.random() * 0.2;
           guitarRef.current.sampler?.triggerAttack(note, now + delay, velocity); 
         }
       } catch {}
@@ -481,8 +509,8 @@ export default function AISynthPage() {
   }, []);
 
   useEffect(() => {
-    if (synthRef.current.synth) synthRef.current.synth.volume.value = isMuted ? -Infinity : -8;
-    if (guitarRef.current.sampler) guitarRef.current.sampler.volume.value = isMuted ? -Infinity : -2;
+    if (synthRef.current.synth) synthRef.current.synth.volume.value = isMuted ? -Infinity : 0;
+    if (guitarRef.current.sampler) guitarRef.current.sampler.volume.value = isMuted ? -Infinity : 0;
   }, [isMuted]);
 
   // ── Live Guitar Input ────────────────────────────────────────────────────────
@@ -565,6 +593,13 @@ export default function AISynthPage() {
             </button>
           ))}
         </div>
+        
+        <button onClick={forceAudioReset}
+          className="flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm uppercase tracking-wider transition-all duration-300 bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30"
+          title="Force reset AudioContext if audio is stuck">
+          <VolumeX size={16} />
+          Force Audio Reset
+        </button>
         
         {mode === "guitar" && (
           <div className="flex gap-2">

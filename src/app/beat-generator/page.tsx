@@ -627,7 +627,7 @@ export default function BeatGeneratorPage() {
               >
                 <Music className="text-white/20 mb-4" size={48} />
                 <p className="text-white/40 text-center text-sm">
-                  Enter a beat prompt and click "Generate Beat" to see the sequencer
+                  Enter a beat prompt and click &quot;Generate Beat&quot; to see the sequencer
                 </p>
               </motion.div>
             )}
