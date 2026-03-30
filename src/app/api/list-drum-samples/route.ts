@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
+const AUDIO_EXTENSIONS = [".wav", ".mp3", ".ogg"];
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -15,7 +17,7 @@ export async function GET(req: Request) {
       );
     }
 
-    // Build the file path
+    // Build the file path: public/sounds/drum-kits/[genre]/[drumType]
     const basePath = path.join(
       process.cwd(),
       "public",
@@ -27,55 +29,28 @@ export async function GET(req: Request) {
 
     // Check if directory exists
     if (!fs.existsSync(basePath)) {
-      // Try with alternative naming (e.g., "latino" vs "latin")
-      const altGenre = genre === "latino" ? "latin" : genre;
-      const altPath = path.join(
-        process.cwd(),
-        "public",
-        "sounds",
-        "drum-kits",
-        altGenre,
-        drumType
-      );
-
-      if (!fs.existsSync(altPath)) {
-        return NextResponse.json(
-          { error: "Directory not found", genre, drumType },
-          { status: 404 }
-        );
-      }
-
-      // Use the alternative path
-      const files = fs
-        .readdirSync(altPath)
-        .filter((file) => file.endsWith(".wav") || file.endsWith(".mp3"))
-        .sort();
-
-      return NextResponse.json({
-        genre: altGenre,
-        drumType,
-        files,
-        count: files.length,
-      });
+      console.warn(`Directory not found: ${basePath}`);
+      // Return empty array instead of 404 for graceful fallback
+      return NextResponse.json({ urls: [] });
     }
 
-    // List audio files in the directory
+    // List audio files in the directory and filter for valid audio formats
     const files = fs
       .readdirSync(basePath)
-      .filter((file) => file.endsWith(".wav") || file.endsWith(".mp3"))
+      .filter((file) => {
+        const ext = path.extname(file).toLowerCase();
+        return AUDIO_EXTENSIONS.includes(ext);
+      })
       .sort();
 
-    return NextResponse.json({
-      genre,
-      drumType,
-      files,
-      count: files.length,
-    });
+    // Convert file names to full public URLs
+    // e.g., "kick1.wav" -> "/sounds/drum-kits/rap-trap/kick/kick1.wav"
+    const urls = files.map((file) => `/sounds/drum-kits/${genre}/${drumType}/${file}`);
+
+    return NextResponse.json({ urls });
   } catch (error) {
     console.error("Error listing drum samples:", error);
-    return NextResponse.json(
-      { error: "Failed to list samples" },
-      { status: 500 }
-    );
+    // Return empty array on error to prevent server crash
+    return NextResponse.json({ urls: [] });
   }
 }

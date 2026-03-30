@@ -1,25 +1,25 @@
 /**
  * Handles loading and managing drum samples from the public folder structure
  * Uses Tone.js Players for high-quality sample-based playback
+ * Now supports random sample selection from configurable folder structure
  */
 
 import * as Tone from "tone";
-import { analyzePrompt, selectSampleIndex } from "./PromptAnalyzer";
 
 export type DrumGenre = "electronic" | "pop" | "rock" | "latino" | "rap-trap";
 export type DrumType = "kick" | "snare" | "closed-hihat" | "open-hihat";
 
 interface SampleCache {
-  player: Tone.Player | SynthDrumFallback;
+  player: Tone.Sampler | SynthDrumFallback;
   isReady: boolean;
   error?: string;
 }
 
 interface DrumKitSampler {
-  kick: Tone.Player | SynthDrumFallback;
-  snare: Tone.Player | SynthDrumFallback;
-  closedHat: Tone.Player | SynthDrumFallback;
-  openHat: Tone.Player | SynthDrumFallback;
+  kick: Tone.Sampler | SynthDrumFallback;
+  snare: Tone.Sampler | SynthDrumFallback;
+  closedHat: Tone.Sampler | SynthDrumFallback;
+  openHat: Tone.Sampler | SynthDrumFallback;
   isReady: boolean;
 }
 
@@ -28,50 +28,59 @@ const sampleCache = new Map<string, SampleCache>();
 
 /**
  * Resolve the path to a sample based on genre and drum type
+ * Fetches available samples from the API and randomly selects one
+ * Falls back to electronic kit if primary genre fails
  */
 export async function resolveSamplePath(
   genre: DrumGenre,
-  drumType: DrumType,
-  prompt: string
+  drumType: DrumType
 ): Promise<string> {
   try {
+    // Try primary genre first
     const response = await fetch(
       `/api/list-drum-samples?genre=${encodeURIComponent(genre)}&drumType=${encodeURIComponent(drumType)}`
     );
 
-    if (!response.ok) {
-      console.warn(`No samples found for ${genre}/${drumType}`);
-      return getFallbackSamplePath(drumType);
+    if (response.ok) {
+      const data = await response.json();
+      const availableUrls: string[] = data.urls || [];
+
+      if (availableUrls.length > 0) {
+        // Randomly select one URL from the available samples
+        const randomIndex = Math.floor(Math.random() * availableUrls.length);
+        const selectedUrl = availableUrls[randomIndex];
+
+        console.log("Loaded random sample:", selectedUrl);
+        return selectedUrl;
+      }
     }
 
-    const data = await response.json();
-    const availableFiles: string[] = data.files || [];
+    // Fallback to electronic kit if primary genre failed or is empty
+    console.warn(`No samples found for ${genre}/${drumType}, trying electronic fallback...`);
+    const fallbackResponse = await fetch(
+      `/api/list-drum-samples?genre=electronic&drumType=${encodeURIComponent(drumType)}`
+    );
 
-    if (availableFiles.length === 0) {
-      console.warn(`Empty directory: ${genre}/${drumType}`);
-      return getFallbackSamplePath(drumType);
+    if (fallbackResponse.ok) {
+      const fallbackData = await fallbackResponse.json();
+      const fallbackUrls: string[] = fallbackData.urls || [];
+
+      if (fallbackUrls.length > 0) {
+        const randomIndex = Math.floor(Math.random() * fallbackUrls.length);
+        const selectedUrl = fallbackUrls[randomIndex];
+
+        console.log("Loaded fallback random sample:", selectedUrl);
+        return selectedUrl;
+      }
     }
 
-    // Analyze prompt to select appropriate sample
-    const analysis = analyzePrompt(prompt);
-    const selectedIndex = selectSampleIndex(analysis, availableFiles.length);
-
-    // Get the selected file
-    const selectedFile = availableFiles[selectedIndex];
-    const basePath = `/sounds/drum-kits/${data.genre}/${drumType}`;
-
-    return `${basePath}/${selectedFile}`;
+    // If all else fails, return a placeholder that will trigger synth fallback
+    console.warn(`No samples found for ${genre}/${drumType} or electronic fallback`);
+    return "";
   } catch (error) {
     console.warn("Error resolving sample path:", error);
-    return getFallbackSamplePath(drumType);
+    return "";
   }
-}
-
-/**
- * Get fallback sample path for a drum type
- */
-export function getFallbackSamplePath(drumType: DrumType): string {
-  return `/sounds/drum-kits/electronic/${drumType}/`;
 }
 
 /**
@@ -152,15 +161,16 @@ function createSynthDrum(
 }
 
 /**
- * Initialize a Player for a specific drum type
- * Uses Tone.Player for simple one-shot playback
+ * Initialize a Sampler for a specific drum type
+ * Uses Tone.Sampler for simple one-shot playback with proper re-triggering
+ * Note: Ensure Tone.start() is called on user interaction before playback,
+ * as beat generation can take >80 seconds and the AudioContext might suspend.
  */
 async function initializeSampler(
   genre: DrumGenre,
   drumType: DrumType,
-  prompt: string,
   volumeDb: number = 0
-): Promise<Tone.Player | SynthDrumFallback> {
+): Promise<Tone.Sampler | SynthDrumFallback> {
   const cacheKey = `${genre}-${drumType}`;
 
   // Check cache first
@@ -171,21 +181,34 @@ async function initializeSampler(
     }
   }
 
-  // Build the primary path
-  const primaryPath = await resolveSamplePath(genre, drumType, prompt);
+  // Build the primary path with random sample selection
+  const primaryPath = await resolveSamplePath(genre, drumType);
 
-  // Try to create player with primary sample
+  // If no samples found, skip to synth fallback
+  if (!primaryPath) {
+    console.warn(`No samples found for ${genre}/${drumType}, using synthesized fallback`);
+    const synthSampler = createSynthDrum(drumType, volumeDb);
+    sampleCache.set(cacheKey, {
+      player: synthSampler as any,
+      isReady: true,
+      error: "No samples found, using synthesis",
+    });
+    return synthSampler;
+  }
+
+  // Try to create sampler with primary sample
   try {
-    const player = new Tone.Player({
-      url: primaryPath,
+    // Use Tone.Sampler which is designed for multiple triggers
+    const sampler = new Tone.Sampler({
+      urls: { C4: primaryPath },
       onload: () => {
         console.log(`✓ Sample loaded for ${genre}/${drumType}: ${primaryPath}`);
       },
     }).toDestination();
 
-    player.volume.value = volumeDb;
+    sampler.volume.value = volumeDb;
 
-    // Wait for player to load
+    // Wait for sampler to load
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error(`Timeout loading ${primaryPath}`));
@@ -193,7 +216,7 @@ async function initializeSampler(
 
       const startTime = Date.now();
       const checkInterval = setInterval(() => {
-        const isLoaded = (player as any).loaded;
+        const isLoaded = (sampler as any).loaded;
         
         if (isLoaded) {
           clearInterval(checkInterval);
@@ -210,12 +233,12 @@ async function initializeSampler(
     });
 
     sampleCache.set(cacheKey, {
-      player,
+      player: sampler,
       isReady: true,
     });
 
     console.log(`✓ Loaded ${genre}/${drumType}`);
-    return player;
+    return sampler;
   } catch (error) {
     console.warn(`Failed to load ${genre}/${drumType}, trying fallback:`, error);
 
@@ -230,49 +253,52 @@ async function initializeSampler(
       }
 
       const fallbackData = await fallbackResponse.json();
-      const fallbackFiles: string[] = fallbackData.files || [];
+      const fallbackUrls: string[] = fallbackData.urls || [];
 
-      if (fallbackFiles.length === 0) {
+      if (fallbackUrls.length === 0) {
         throw new Error("No fallback files available");
       }
 
-      const fallbackFile = fallbackFiles[0];
-      const fallbackPath = `/sounds/drum-kits/electronic/${drumType}/${fallbackFile}`;
+      // Randomly select from available fallback samples
+      const randomIndex = Math.floor(Math.random() * fallbackUrls.length);
+      const fallbackPath = fallbackUrls[randomIndex];
 
-      const fallbackPlayer = new Tone.Player({
-        url: fallbackPath,
+      console.log("Loaded fallback random sample:", fallbackPath);
+
+      const fallbackSampler = new Tone.Sampler({
+        urls: { C4: fallbackPath },
       }).toDestination();
 
-      fallbackPlayer.volume.value = volumeDb;
+      fallbackSampler.volume.value = volumeDb;
 
-      // Wait for fallback player to load
+      // Wait for fallback sampler to load
       await new Promise<void>((resolve) => {
         const timeout = setTimeout(() => {
           resolve();
         }, 5000);
 
         const checkInterval = setInterval(() => {
-          const isLoaded = (fallbackPlayer as any).loaded;
+          const isLoaded = (fallbackSampler as any).loaded;
           
           if (isLoaded) {
             clearInterval(checkInterval);
             clearTimeout(timeout);
+            console.log(`✓ Fallback buffer ready for ${genre}/${drumType}`);
             resolve();
           }
         }, 300);
       });
 
       sampleCache.set(cacheKey, {
-        player: fallbackPlayer,
+        player: fallbackSampler,
         isReady: true,
+        error: `Using fallback for ${genre}/${drumType}`,
       });
 
-      console.log(`✓ Loaded fallback for ${drumType}`);
-      return fallbackPlayer;
+      console.log(`✓ Loaded fallback for ${genre}/${drumType}`);
+      return fallbackSampler;
     } catch (fallbackError) {
-      console.error(`Fallback also failed for ${drumType}:`, fallbackError);
-      console.log(`Using synthesis fallback for ${drumType}`);
-
+      console.warn(`Failed fallback for ${genre}/${drumType}:`, fallbackError);
       const synthSampler = createSynthDrum(drumType, volumeDb);
 
       sampleCache.set(cacheKey, {
@@ -309,10 +335,10 @@ export async function createDrumKitSampler(
     };
 
     const [kick, snare, closedHat, openHat] = await Promise.all([
-      initializeSampler(genre, "kick", prompt, volumes.kick),
-      initializeSampler(genre, "snare", prompt, volumes.snare),
-      initializeSampler(genre, "closed-hihat", prompt, volumes.closedHat),
-      initializeSampler(genre, "open-hihat", prompt, volumes.openHat),
+      initializeSampler(genre, "kick", volumes.kick),
+      initializeSampler(genre, "snare", volumes.snare),
+      initializeSampler(genre, "closed-hihat", volumes.closedHat),
+      initializeSampler(genre, "open-hihat", volumes.openHat),
     ]);
 
     return {
@@ -347,40 +373,33 @@ export function clearSampleCache(): void {
  */
 /**
  * Trigger a drum sample with proper timing
- * Clones the player each time to allow repeated playback
+ * Uses Sampler's triggerAttackRelease for clean triggering
  */
 export function triggerDrumSample(
   player: any,
   time: number,
   duration: string = "8n"
 ): void {
-  if (!player) return;
+  if (!player) {
+    console.warn("triggerDrumSample: player is null or undefined");
+    return;
+  }
 
   try {
     // Check if it's a SynthDrumFallback
     if (player instanceof SynthDrumFallback) {
       player.triggerAttackRelease("C4", duration, time);
+      console.debug(`▶ Playing synth drum at ${time}`);
       return;
     }
 
-    // For Tone.Players, clone and trigger each time
-    if (player instanceof Tone.Player) {
+    // For Tone.Samplers, use triggerAttackRelease
+    if (player instanceof Tone.Sampler) {
       try {
-        // Clone the player so we can play it again
-        const clone = player.clone();
-        
-        // Schedule the clone to play at the specified time
-        clone.start(time);
-        
-        // Clean up after playback completes
-        const durationSecs = Tone.Time(duration).toSeconds();
-        Tone.Transport.scheduleOnce(() => {
-          clone.dispose();
-        }, `+${durationSecs}`, time);
-        
+        player.triggerAttackRelease("C4", duration, time);
         console.debug(`▶ Playing drum sample at ${time}`);
       } catch (err) {
-        console.debug("Error cloning/triggering drum sample:", err);
+        console.warn("Error triggering drum sample:", err);
       }
     }
   } catch (error) {

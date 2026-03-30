@@ -8,7 +8,10 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "FixYourSound",
-  description: "Semantic DSP engine for audio enhancement",
+  description: "Master the art of sound, empowered by AI",
+  icons: {
+    icon: "/pictures/logo.png", // Path to your custom icon
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

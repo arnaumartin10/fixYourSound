@@ -66,7 +66,11 @@ export default function BeatGeneratorPage() {
   // Initialize drum samplers based on user-selected drumKit and prompt analysis
   const initDrumSamplers = useCallback(
     async (userDrumKit: "rock" | "pop" | "electronic" | "latino" | "rap-trap", userPrompt: string) => {
-      if (samplerInitRef.current) return;
+      // If already initialized, return the cached kit
+      if (samplerInitRef.current && drukitSamplerRef.current) {
+        console.log("✓ Using cached drum kit sampler");
+        return drukitSamplerRef.current;
+      }
 
       if (Tone.context.state !== "running") {
         await Tone.start();
