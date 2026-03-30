@@ -8,7 +8,6 @@ export function Providers({ children }: { children: ReactNode }) {
     <SessionProvider
       refetchInterval={0}
       refetchOnWindowFocus={false}
-      refetchOnMount={false}
     >
       {children}
     </SessionProvider>
