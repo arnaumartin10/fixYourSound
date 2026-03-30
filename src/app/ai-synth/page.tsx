@@ -332,9 +332,9 @@ export default function AISynthPage() {
       subGain.gain.value = targetGain;
       
       // IMPORTANT FIX: Start/stop the subOsc based on whether it's being used
-      if (p.subOscillator && !subOsc.state.started) {
+      if (p.subOscillator && subOsc.state !== "started") {
         try { subOsc.start(); } catch (e) { /* Already started or error */ }
-      } else if (!p.subOscillator && subOsc.state.started) {
+      } else if (!p.subOscillator && subOsc.state === "started") {
         try { subOsc.stop(); } catch (e) { /* Already stopped or error */ }
       }
       
@@ -430,7 +430,7 @@ export default function AISynthPage() {
     
     // CRITICAL FIX: Stop the sub-oscillator if it's playing
     try {
-      if (synthRef.current.subOsc?.state.started) {
+      if (synthRef.current.subOsc?.state === "started") {
         synthRef.current.subOsc.stop();
       }
     } catch {}
