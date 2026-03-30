@@ -15,7 +15,7 @@ interface SampleCache {
   error?: string;
 }
 
-interface DrumKitSampler {
+export interface DrumKitSampler {
   kick: Tone.Sampler | SynthDrumFallback;
   snare: Tone.Sampler | SynthDrumFallback;
   closedHat: Tone.Sampler | SynthDrumFallback;

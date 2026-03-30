@@ -20,6 +20,7 @@ import {
   triggerDrumSample,
   getSamplesLoadingProgress,
   type DrumGenre,
+  type DrumKitSampler,
 } from "@/lib/beatGenerator/SampleLoader";
 
 interface BeatTrack {
@@ -34,14 +35,6 @@ interface BeatData {
   drumKit: "rock" | "pop" | "electronic" | "latino" | "rap-trap";
   bars: 1 | 2 | 4;
   tracks: BeatTrack[];
-}
-
-interface DrumKitSampler {
-  kick: Tone.Sampler;
-  snare: Tone.Sampler;
-  closedHat: Tone.Sampler;
-  openHat: Tone.Sampler;
-  isReady: boolean;
 }
 
 export default function BeatGeneratorPage() {
@@ -186,13 +179,15 @@ export default function BeatGeneratorPage() {
         transportRef.current = null;
       }
 
-      // Release all sounds
+      // Release all sounds (for SynthDrumFallback instances)
       if (drukitSamplerRef.current) {
         const { kick, snare, closedHat, openHat } = drukitSamplerRef.current;
         [kick, snare, closedHat, openHat].forEach((sampler) => {
           if (sampler) {
             try {
-              sampler.triggerRelease?.();
+              if (sampler instanceof Tone.Sampler) {
+                sampler.releaseAll?.();
+              }
             } catch (e) {
               // Ignore errors
             }
