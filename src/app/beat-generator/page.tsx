@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import * as Tone from "tone";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -14,6 +14,7 @@ import {
   Volume2,
   Loader,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import {
   createDrumKitSampler,
   clearSampleCache,
@@ -22,6 +23,8 @@ import {
   type DrumGenre,
   type DrumKitSampler,
 } from "@/lib/beatGenerator/SampleLoader";
+import { SavePresetModal } from "@/components/SavePresetModal";
+import { getPresetById } from "@/actions/presetActions";
 
 interface BeatTrack {
   instrument: string;
@@ -37,7 +40,8 @@ interface BeatData {
   tracks: BeatTrack[];
 }
 
-export default function BeatGeneratorPage() {
+function BeatGeneratorContent() {
+  const searchParams = useSearchParams();
   const [prompt, setPrompt] = useState("");
   const [intensity, setIntensity] = useState(50);
   const [complexity, setComplexity] = useState(50);
@@ -50,7 +54,33 @@ export default function BeatGeneratorPage() {
   const [showInfo, setShowInfo] = useState(true);
   const [isLoadingSamples, setIsLoadingSamples] = useState(false);
   const [samplesLoadingProgress, setSamplesLoadingProgress] = useState(0);
+  const [presetLoaded, setPresetLoaded] = useState(false);
   const maxSteps = bars * 16;
+
+  useEffect(() => {
+    const loadPreset = async () => {
+      const presetId = searchParams.get("presetId");
+      if (!presetId || presetLoaded) return;
+
+      try {
+        const preset = await getPresetById(presetId);
+        if (!preset) return;
+
+        const data = JSON.parse(preset.data);
+        if (data.prompt) setPrompt(data.prompt);
+        if (data.intensity) setIntensity(data.intensity);
+        if (data.complexity) setComplexity(data.complexity);
+        if (data.drumKit) setDrumKit(data.drumKit);
+        if (data.bars) setBars(data.bars);
+        if (data.beatData) setBeatData(data.beatData);
+        setPresetLoaded(true);
+      } catch (err) {
+        console.error("Failed to load preset:", err);
+      }
+    };
+
+    loadPreset();
+  }, [searchParams]);
 
   const drukitSamplerRef = useRef<DrumKitSampler | null>(null);
   const transportRef = useRef<Tone.Loop | null>(null);
@@ -409,21 +439,29 @@ export default function BeatGeneratorPage() {
             </div>
           </div>
 
-          {/* Generate Button */}
-          <button
-            onClick={handleGenerate}
-            disabled={isLoading || !prompt.trim()}
-            className="w-full group relative flex items-center justify-center gap-2 bg-[#00f5d4] text-black px-8 py-4 rounded-2xl font-black text-lg transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(0,245,212,0.2)] disabled:opacity-50"
-          >
-            {isLoading ? (
-              <span className="h-5 w-5 animate-spin rounded-full border-2 border-black border-t-transparent" />
-            ) : (
-              <>
-                <Sparkles size={18} />
-                Generate Beat
-              </>
+          {/* Generate & Save Buttons */}
+          <div className="flex gap-3">
+            <button
+              onClick={handleGenerate}
+              disabled={isLoading || !prompt.trim()}
+              className="flex-1 group relative flex items-center justify-center gap-2 bg-[#00f5d4] text-black px-8 py-4 rounded-2xl font-black text-lg transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(0,245,212,0.2)] disabled:opacity-50"
+            >
+              {isLoading ? (
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-black border-t-transparent" />
+              ) : (
+                <>
+                  <Sparkles size={18} />
+                  Generate Beat
+                </>
+              )}
+            </button>
+            {beatData && (
+              <SavePresetModal
+                category="BEAT"
+                getData={() => ({ prompt, intensity, complexity, drumKit, bars, beatData })}
+              />
             )}
-          </button>
+          </div>
 
           {/* Playback Controls */}
           <AnimatePresence>
@@ -659,5 +697,13 @@ export default function BeatGeneratorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function BeatGeneratorPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-6 py-12"><div className="animate-pulse h-96 bg-white/5 rounded-3xl" /></div>}>
+      <BeatGeneratorContent />
+    </Suspense>
   );
 }

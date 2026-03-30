@@ -8,16 +8,29 @@ import { savePreset } from "@/actions/presetActions";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SavePresetModalProps {
-  category: "SYNTH" | "GUITAR" | "FX" | "CHORD" | "VOICE";
+  category: "SYNTH" | "GUITAR" | "FX" | "CHORD" | "VOICE" | "MELODY" | "BEAT";
   getData: () => any;
+  isOpen?: boolean;
+  onClose?: () => void;
+  hideTriggerButton?: boolean;
 }
 
-export function SavePresetModal({ category, getData }: SavePresetModalProps) {
+export function SavePresetModal({ category, getData, isOpen: externalIsOpen, onClose, hideTriggerButton }: SavePresetModalProps) {
   const { status } = useSession();
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [name, setName] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsOpen = (value: boolean) => {
+    if (externalIsOpen === undefined) {
+      setInternalIsOpen(value);
+    }
+    if (value === false && onClose) {
+      onClose();
+    }
+  };
 
   const handleOpen = () => {
     if (status === "unauthenticated") {
@@ -48,22 +61,28 @@ export function SavePresetModal({ category, getData }: SavePresetModalProps) {
 
   return (
     <>
-      <button 
-        onClick={handleOpen}
-        className="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 rounded-full text-white font-bold transition-all text-sm group"
-      >
-        <Save size={16} className="text-[#00f5d4] group-hover:scale-110 transition-transform" />
-        Save Preset
-      </button>
+      {!hideTriggerButton && (
+        <button 
+          onClick={handleOpen}
+          className="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 rounded-full text-white font-bold transition-all text-sm group"
+        >
+          <Save size={16} className="text-[#00f5d4] group-hover:scale-110 transition-transform" />
+          Save Preset
+        </button>
+      )}
 
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div 
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+            onClick={() => setIsOpen(false)}
+          >
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative"
+              onClick={(e) => e.stopPropagation()}
             >
               <button 
                 onClick={() => setIsOpen(false)}

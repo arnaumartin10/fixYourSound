@@ -4,8 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSession } from "next-auth/react";
-import { ChevronDown, Music, BookOpen } from "lucide-react";
+import { useSession, signIn, signOut } from "next-auth/react";
+import { ChevronDown, Music, BookOpen, LogOut } from "lucide-react";
 import { useState } from "react";
 
 const mainNavLinks = [
@@ -191,16 +191,36 @@ export const Header = () => {
           {status === "loading" ? (
             <div className="w-8 h-8 rounded-full border-2 border-white/10 border-t-[#00f5d4] animate-spin" />
           ) : session?.user ? (
-            <Link href="/profile" className="flex items-center gap-3 group">
-              <span className="text-xs font-bold text-white/50 group-hover:text-white transition-colors">{session.user.name?.split(' ')[0] || "Profile"}</span>
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#00f5d4] to-[#9d4edd] flex items-center justify-center text-black font-black text-sm overflow-hidden shadow-[0_0_15px_rgba(0,245,212,0.2)] group-hover:scale-105 transition-all">
-                  {session.user.image ? <img src={session.user.image} alt="User" /> : session.user.name?.charAt(0) || session.user.email?.charAt(0) || "U"}
-              </div>
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link href="/profile" className="flex items-center gap-3 group">
+                <span className="text-xs font-bold text-white/50 group-hover:text-white transition-colors">{session.user.name?.split(' ')[0] || "Profile"}</span>
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#00f5d4] to-[#9d4edd] flex items-center justify-center text-black font-black text-sm overflow-hidden shadow-[0_0_15px_rgba(0,245,212,0.2)] group-hover:scale-105 transition-all">
+                    {session.user.image ? <img src={session.user.image} alt="User" className="w-full h-full object-cover" /> : session.user.name?.charAt(0) || session.user.email?.charAt(0) || "U"}
+                </div>
+              </Link>
+              <button 
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="p-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white/50 hover:text-white transition-all"
+                title="Log Out"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
           ) : (
-            <Link href="/auth/signin" className="px-5 py-2 rounded-full border border-white/20 text-white/80 hover:text-white hover:border-[#00f5d4] text-sm font-bold transition-all hover:shadow-[0_0_15px_rgba(0,245,212,0.2)]">
-              Sign In
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link 
+                href="/login"
+                className="px-5 py-2 rounded-full border border-white/20 text-white/80 hover:text-white hover:border-white/40 text-sm font-bold transition-all"
+              >
+                Log In
+              </Link>
+              <Link 
+                href="/signup"
+                className="px-5 py-2 rounded-full bg-[#00f5d4] text-black text-sm font-bold transition-all hover:bg-[#00d4aa] hover:shadow-[0_0_20px_rgba(0,245,212,0.4)]"
+              >
+                Sign Up
+              </Link>
+            </div>
           )}
         </div>
       </div>

@@ -28,6 +28,9 @@ import {
 } from "lucide-react";
 import { clamp } from "@/lib/voiceToNotes/pitchUtils";
 import type { VoiceToNotesWorkerInit as WorkerInit } from "@/lib/voiceToNotes/types";
+import { useSearchParams } from "next/navigation";
+import { SavePresetModal } from "@/components/SavePresetModal";
+import { getPresetById } from "@/actions/presetActions";
 
 const ANALYSIS_BUFFER_SIZE_SAMPLES = 2048;
 const ANALYSIS_HOP_SIZE_SAMPLES = 256;
@@ -58,6 +61,7 @@ type LatestFrame = {
 };
 
 export function VoiceToNotesPro() {
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<"mic" | "upload">("mic");
 
   const [isRecording, setIsRecording] = useState(false);
@@ -74,12 +78,37 @@ export function VoiceToNotesPro() {
 
   const [segments, setSegments] = useState<DetectedNoteSegment[]>([]);
   const [progress, setProgress] = useState<number>(0);
+  const [presetLoaded, setPresetLoaded] = useState(false);
 
   // MIDI export controls
   const [bpm, setBpm] = useState(120);
   const [quantization, setQuantization] = useState<VoiceToNotesQuantization>("16");
   const [pitchBendRangeSemis, setPitchBendRangeSemis] = useState(2);
   const [includeExpressionCC7, setIncludeExpressionCC7] = useState(true);
+
+  useEffect(() => {
+    const loadPreset = async () => {
+      const presetId = searchParams.get("presetId");
+      if (!presetId || presetLoaded) return;
+
+      try {
+        const preset = await getPresetById(presetId);
+        if (!preset) return;
+
+        const data = JSON.parse(preset.data);
+        if (data.bpm) setBpm(data.bpm);
+        if (data.quantization) setQuantization(data.quantization);
+        if (data.pitchBendRangeSemis) setPitchBendRangeSemis(data.pitchBendRangeSemis);
+        if (data.includeExpressionCC7 !== undefined) setIncludeExpressionCC7(data.includeExpressionCC7);
+        if (data.segments) setSegments(data.segments);
+        setPresetLoaded(true);
+      } catch (err) {
+        console.error("Failed to load preset:", err);
+      }
+    };
+
+    loadPreset();
+  }, [searchParams]);
 
   // Pitch analysis controls (affect segmentation)
   const [silenceThresholdDb, setSilenceThresholdDb] = useState<number>(
@@ -522,6 +551,12 @@ export function VoiceToNotesPro() {
                   Upload Audio
                 </span>
               </button>
+              {segments.length > 0 && (
+                <SavePresetModal
+                  category="VOICE"
+                  getData={() => ({ bpm, quantization, pitchBendRangeSemis, includeExpressionCC7, segments })}
+                />
+              )}
             </div>
           </div>
         </header>

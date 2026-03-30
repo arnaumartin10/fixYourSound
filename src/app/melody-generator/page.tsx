@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import * as Tone from "tone";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Play, Square, Info, Music, Sparkles, Zap } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { PianoRoll } from "@/components/MelodyGenerator/PianoRoll";
+import { SavePresetModal } from "@/components/SavePresetModal";
+import { getPresetById } from "@/actions/presetActions";
 
 interface MelodyNote {
   pitch: string;
@@ -19,7 +22,8 @@ interface MelodyData {
   timeSignature: string;
 }
 
-export default function MelodyGeneratorPage() {
+function MelodyGeneratorContent() {
+  const searchParams = useSearchParams();
   const [chordProgression, setChordProgression] = useState("");
   const [vibe, setVibe] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +31,29 @@ export default function MelodyGeneratorPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [showInfo, setShowInfo] = useState(true);
+  const [presetLoaded, setPresetLoaded] = useState(false);
+
+  useEffect(() => {
+    const loadPreset = async () => {
+      const presetId = searchParams.get("presetId");
+      if (!presetId || presetLoaded) return;
+
+      try {
+        const preset = await getPresetById(presetId);
+        if (!preset) return;
+
+        const data = JSON.parse(preset.data);
+        if (data.chordProgression) setChordProgression(data.chordProgression);
+        if (data.vibe) setVibe(data.vibe);
+        if (data.melodyData) setMelodyData(data.melodyData);
+        setPresetLoaded(true);
+      } catch (err) {
+        console.error("Failed to load preset:", err);
+      }
+    };
+
+    loadPreset();
+  }, [searchParams]);
 
   const synth = useRef<{ lead: Tone.PolySynth | null; bass: Tone.PolySynth | null }>({
     lead: null,
@@ -309,21 +336,29 @@ export default function MelodyGeneratorPage() {
             </div>
           </div>
 
-          {/* Generate Button */}
-          <button
-            onClick={handleGenerate}
-            disabled={isLoading || !chordProgression.trim() || !vibe.trim()}
-            className="w-full group relative flex items-center justify-center gap-2 bg-[#00f5d4] text-black px-8 py-4 rounded-2xl font-black text-lg transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(0,245,212,0.2)] disabled:opacity-50"
-          >
-            {isLoading ? (
-              <span className="h-5 w-5 animate-spin rounded-full border-2 border-black border-t-transparent" />
-            ) : (
-              <>
-                <Sparkles size={18} />
-                Generate Melody
-              </>
+          {/* Generate & Save Buttons */}
+          <div className="flex gap-3">
+            <button
+              onClick={handleGenerate}
+              disabled={isLoading || !chordProgression.trim() || !vibe.trim()}
+              className="flex-1 group relative flex items-center justify-center gap-2 bg-[#00f5d4] text-black px-8 py-4 rounded-2xl font-black text-lg transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(0,245,212,0.2)] disabled:opacity-50"
+            >
+              {isLoading ? (
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-black border-t-transparent" />
+              ) : (
+                <>
+                  <Sparkles size={18} />
+                  Generate Melody
+                </>
+              )}
+            </button>
+            {melodyData && (
+              <SavePresetModal
+                category="MELODY"
+                getData={() => ({ chordProgression, vibe, melodyData })}
+              />
             )}
-          </button>
+          </div>
 
           {/* Playback Controls */}
           <AnimatePresence>
@@ -455,5 +490,13 @@ export default function MelodyGeneratorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MelodyGeneratorPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-6 py-12"><div className="animate-pulse h-96 bg-white/5 rounded-3xl" /></div>}>
+      <MelodyGeneratorContent />
+    </Suspense>
   );
 }

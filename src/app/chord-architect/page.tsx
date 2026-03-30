@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { PianoVisualizer } from "@/components/PianoVisualizer";
 import { GuitarVisualizer } from "@/components/GuitarVisualizer";
 import { Chord, Note } from "tonal";
@@ -11,9 +11,13 @@ import {
   ChevronRight, 
   Layout, 
   Piano as PianoIcon, 
-  Guitar as GuitarIcon 
+  Guitar as GuitarIcon,
+  Save 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSearchParams } from "next/navigation";
+import { SavePresetModal } from "@/components/SavePresetModal";
+import { getPresetById } from "@/actions/presetActions";
 
 import { parseNotesFromChord } from "@/utils/chordParser";
 
@@ -29,13 +33,39 @@ interface ProgressionChord {
   explanation: string;
 }
 
-export default function ChordArchitectPage() {
+function ChordArchitectContent() {
+  const searchParams = useSearchParams();
   const [scale, setScale] = useState("C major");
   const [vibe, setVibe] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [progression, setProgression] = useState<ProgressionChord[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [strummingIdea, setStrummingIdea] = useState("");
+  const [presetLoaded, setPresetLoaded] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+
+  useEffect(() => {
+    const loadPreset = async () => {
+      const presetId = searchParams.get("presetId");
+      if (!presetId || presetLoaded) return;
+
+      try {
+        const preset = await getPresetById(presetId);
+        if (!preset) return;
+
+        const data = JSON.parse(preset.data);
+        if (data.scale) setScale(data.scale);
+        if (data.vibe) setVibe(data.vibe);
+        if (data.progression) setProgression(data.progression);
+        if (data.strummingIdea) setStrummingIdea(data.strummingIdea);
+        setPresetLoaded(true);
+      } catch (err) {
+        console.error("Failed to load preset:", err);
+      }
+    };
+
+    loadPreset();
+  }, [searchParams]);
 
   const handleGenerate = async () => {
     setIsLoading(true);
@@ -95,20 +125,31 @@ export default function ChordArchitectPage() {
                 />
               </div>
 
-              <button
-                onClick={handleGenerate}
-                disabled={isLoading}
-                className="w-full group relative flex items-center justify-center gap-2 bg-brand-start text-black px-8 py-4 rounded-2xl font-black text-lg transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(0,245,212,0.3)] disabled:opacity-50"
-              >
-                {isLoading ? (
-                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-black border-t-transparent" />
-                ) : (
-                  <>
-                    Build Progression
-                    <Send size={18} className="group-hover:translate-x-1 transition-transform" />
-                  </>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleGenerate}
+                  disabled={isLoading}
+                  className="flex-1 group relative flex items-center justify-center gap-2 bg-brand-start text-black px-8 py-4 rounded-2xl font-black text-lg transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(0,245,212,0.3)] disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-black border-t-transparent" />
+                  ) : (
+                    <>
+                      Build Progression
+                      <Send size={18} className="group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </button>
+                {progression.length > 0 && (
+                  <button
+                    onClick={() => setShowSaveModal(true)}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 rounded-full text-white font-bold transition-all text-sm group"
+                  >
+                    <Save size={16} className="text-[#00f5d4] group-hover:scale-110 transition-transform" />
+                    Save Preset
+                  </button>
                 )}
-              </button>
+              </div>
             </div>
           </div>
 
@@ -198,6 +239,23 @@ export default function ChordArchitectPage() {
           )}
         </main>
       </div>
+      
+      {showSaveModal && (
+        <SavePresetModal
+          category="CHORD"
+          getData={() => ({ scale, vibe, progression, strummingIdea })}
+          isOpen={showSaveModal}
+          onClose={() => setShowSaveModal(false)}
+        />
+      )}
     </div>
+  );
+}
+
+export default function ChordArchitectPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-6 py-12"><div className="animate-pulse h-96 bg-white/5 rounded-3xl" /></div>}>
+      <ChordArchitectContent />
+    </Suspense>
   );
 }

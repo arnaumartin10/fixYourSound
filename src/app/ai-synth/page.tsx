@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import * as Tone from "tone";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Send, Keyboard, Usb, Volume2, VolumeX, Waves, Sliders, Lightbulb, ChevronUp, ChevronDown, Square, Guitar, Music, Mic } from "lucide-react";
+import { Sparkles, Send, Keyboard, Usb, Volume2, VolumeX, Waves, Sliders, Lightbulb, ChevronUp, ChevronDown, Square, Guitar, Music, Mic, Save } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { SavePresetModal } from "@/components/SavePresetModal";
+import { getPresetById } from "@/actions/presetActions";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
@@ -169,7 +172,8 @@ function PianoKeyboard({ activeKeys, onPlay, onRelease, getNote }: {
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
-export default function AISynthPage() {
+function AISynthPageContent() {
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<"synth" | "guitar">("synth");
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -185,6 +189,7 @@ export default function AISynthPage() {
   const [octaveShift, setOctaveShift] = useState(0);
   const [palmMute, setPalmMute] = useState(false);
   const [liveAudio, setLiveAudio] = useState(false);
+  const [presetLoaded, setPresetLoaded] = useState(false);
 
   // Active note tracking — key => note name
   const activeNotesRef = useRef<Map<string, string>>(new Map());
@@ -513,6 +518,36 @@ export default function AISynthPage() {
     if (guitarRef.current.sampler) guitarRef.current.sampler.volume.value = isMuted ? -Infinity : 0;
   }, [isMuted]);
 
+  // ── Load Preset from URL ───────────────────────────────────────────────────
+  useEffect(() => {
+    const loadPreset = async () => {
+      const presetId = searchParams.get("presetId");
+      if (!presetId || presetLoaded) return;
+
+      try {
+        const preset = await getPresetById(presetId);
+        if (!preset) return;
+
+        const data = JSON.parse(preset.data);
+        
+        if (preset.category === "GUITAR") {
+          setMode("guitar");
+          setGuitarParams(data);
+          setTimeout(() => updateGuitarParams(data), 100);
+        } else if (preset.category === "SYNTH") {
+          setMode("synth");
+          setSynthParams(data);
+          setTimeout(() => updateSynthParams(data), 100);
+        }
+        setPresetLoaded(true);
+      } catch (err) {
+        console.error("Failed to load preset:", err);
+      }
+    };
+
+    loadPreset();
+  }, [searchParams]);
+
   // ── Live Guitar Input ────────────────────────────────────────────────────────
   const toggleLiveAudio = useCallback(async () => {
     if (!guitarInit) await initGuitar();
@@ -649,6 +684,12 @@ export default function AISynthPage() {
                   className="px-8 py-4 bg-[#00f5d4] text-black rounded-2xl font-black flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50">
                   {isLoading ? <span className="h-5 w-5 animate-spin rounded-full border-2 border-black border-t-transparent" /> : <><Send size={18} />{mode === "synth" ? "Generate" : "Match Tone"}</>}
                 </button>
+                {activeParams && (
+                  <SavePresetModal 
+                    category={mode === "synth" ? "SYNTH" : "GUITAR"} 
+                    getData={() => mode === "synth" ? synthParams : guitarParams}
+                  />
+                )}
               </div>
               <div className="flex flex-wrap gap-2 mt-4">
                 {presets.map((p) => (
@@ -953,5 +994,13 @@ export default function AISynthPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AISynthPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-6 py-12"><div className="animate-pulse h-96 bg-white/5 rounded-3xl" /></div>}>
+      <AISynthPageContent />
+    </Suspense>
   );
 }
