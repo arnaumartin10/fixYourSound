@@ -219,7 +219,7 @@ export default function LearningHubPage() {
         activePlayersRef.current.add(dryPlayer as any);
         activePlayersRef.current.add(wetPlayer as any);
 
-        console.log(`Playing effect: ${effect.name}`);
+        console.log(`Playing effect: ${effect.title}`);
       } catch (error) {
         console.error("Error playing effect:", error);
         setPlayingEffect(null);
