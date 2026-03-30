@@ -3,11 +3,7 @@
  * Calculates Peak Level (dB), RMS Level, and simplified loudness estimation
  */
 
-export interface LoudnessMetrics {
-  peakLevel: number; // dB
-  rmsLevel: number; // dB
-  loudnessValue: number; // 0-100 scale (0 = quiet, 100 = very loud)
-}
+import { LoudnessMetrics } from "./types";
 
 /**
  * Analyze loudness metrics from audio buffer

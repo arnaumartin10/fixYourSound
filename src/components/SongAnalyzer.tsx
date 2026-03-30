@@ -673,17 +673,17 @@ export default function SongAnalyzer() {
 
                     <div className="grid grid-cols-2 gap-4 mt-5">
                       <div className="bg-white/[0.02] rounded-2xl p-4 border border-white/5">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-1">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-1 flex items-center gap-1">
                           Peak Level <Tooltip text="The absolute loudest moment in your track. Should stay below 0 dBFS to avoid digital clipping." />
-                        </p>
+                        </div>
                         <p className="text-2xl font-black" style={{ color: result.peakDb > -3 ? "#f87171" : "#00f5d4" }}>
                           {result.peakDb} <span className="text-sm text-white/30 font-bold">dBFS</span>
                         </p>
                       </div>
                       <div className="bg-white/[0.02] rounded-2xl p-4 border border-white/5">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-1">
+                        <div className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-1 flex items-center gap-1">
                           RMS Level <Tooltip text="Average loudness of your track. Streaming platforms target around -14 LUFS (roughly -18 to -12 dBFS RMS)." />
-                        </p>
+                        </div>
                         <p className="text-2xl font-black" style={{ color: result.loudnessColor }}>
                           {result.rmsDb} <span className="text-sm text-white/30 font-bold">dBFS</span>
                         </p>
