@@ -8,17 +8,22 @@ export async function savePreset(name: string, category: string, data: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  const preset = await prisma.preset.create({
-    data: {
-      name,
-      category,
-      data,
-      userId: session.user.id
-    }
-  });
+  console.log("[savePreset] User ID from session:", session.user.id);
 
-  revalidatePath("/profile");
-  return preset;
+  try {
+    const preset = await prisma.preset.create({
+      data: {
+        name,
+        category,
+        data,
+        userId: session.user.id
+      }
+    });
+    return preset;
+  } catch (error) {
+    console.error("[savePreset] Error:", error);
+    throw error;
+  }
 }
 
 export async function deletePreset(id: string) {
