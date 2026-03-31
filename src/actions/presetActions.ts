@@ -4,15 +4,25 @@ import { auth } from "@/auth";
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 
+function generateId() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 export async function savePreset(name: string, category: string, data: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
   const supabase = await createClient();
+  const id = generateId();
 
   const { data: preset, error } = await supabase
     .from("presets")
     .insert({
+      id,
       name,
       category,
       data,
@@ -25,6 +35,12 @@ export async function savePreset(name: string, category: string, data: string) {
     console.error("[savePreset] Error:", error);
     throw new Error(error.message);
   }
+
+  if (!preset) {
+    throw new Error("Failed to create preset");
+  }
+
+  console.log("[savePreset] Success:", preset);
 
   revalidatePath("/profile");
   return preset;
