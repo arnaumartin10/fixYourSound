@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { createClient } from "@/utils/supabase/server";
 import bcryptjs from "bcryptjs";
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = await createClient();
     const { name, email, password } = await req.json();
 
     if (!email || !password || !name) {
@@ -13,9 +14,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+    const { data: existingUser, error: findError } = await supabase
+      .from("users")
+      .select("id")
+      .eq("email", email)
+      .single();
 
     if (existingUser) {
       return NextResponse.json(
@@ -26,13 +29,23 @@ export async function POST(req: NextRequest) {
 
     const hashedPassword = await bcryptjs.hash(password, 12);
 
-    const user = await prisma.user.create({
-      data: {
+    const { data: user, error: createError } = await supabase
+      .from("users")
+      .insert({
         name,
         email,
         password: hashedPassword,
-      },
-    });
+      })
+      .select()
+      .single();
+
+    if (createError) {
+      console.error("Signup error:", createError);
+      return NextResponse.json(
+        { error: "Failed to create account" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ success: true, userId: user.id });
   } catch (error) {
