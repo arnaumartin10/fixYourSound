@@ -250,7 +250,9 @@ export function DashboardTabs({ presets, user, initialTab, onSettingsClick, isSe
                      ) : (
                        <>
                          <h3 className="text-xl font-black text-white whitespace-nowrap overflow-hidden text-ellipsis">{preset.name}</h3>
-                         <p className="text-white/30 text-xs mt-1">{new Date(preset.createdAt).toLocaleDateString()}</p>
+                         <p className="text-white/30 text-xs mt-1">
+                           {preset.createdAt ? new Date(preset.createdAt).toLocaleDateString() : "No date"}
+                         </p>
                        </>
                      )}
                    </div>

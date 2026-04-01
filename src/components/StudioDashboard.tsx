@@ -11,6 +11,7 @@ import { WaveformComparison } from "@/components/WaveformComparison";
 import { TransformationLogic } from "@/components/TransformationLogic";
 import { SavePresetModal } from "@/components/SavePresetModal";
 import { getPresetById } from "@/actions/presetActions";
+import { Save, Sparkles, Wand2 } from "lucide-react";
 
 export function StudioDashboard() {
   const searchParams = useSearchParams();
@@ -73,9 +74,6 @@ export function StudioDashboard() {
               Professional Semantic DSP Engine. Translate your creative intuition into high-fidelity audio engineering.
             </p>
           </div>
-          {hasPrompt && (
-            <button onClick={() => setShowSaveModal(true)} className="flex items-center justify-center gap-2 bg-[#00f5d4] text-black font-black px-6 py-3 rounded-xl hover:scale-105 transition-transform active:scale-95 shadow-lg shadow-[#00f5d4]/20">Save Preset</button>
-          )}
         </div>
       </header>
 
@@ -122,10 +120,19 @@ export function StudioDashboard() {
                 onExport={exportAudio}
               />
               <VibeCommandBar onApply={applySemanticCommand} />
-              <p className="text-xs text-slate-300">
-                Last prompt: {lastCommand || "none yet"} | Active terms:{" "}
-                {semanticTerms.length ? semanticTerms.join(", ") : "none"}
-              </p>
+              <div className="flex items-center justify-between px-1">
+                <p className="text-xs text-white/30 italic">
+                  Last prompt: <span className="text-[#00f5d4] not-italic font-bold">{lastCommand || "none yet"}</span>
+                </p>
+                {hasPrompt && (
+                  <button 
+                    onClick={() => setShowSaveModal(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#00f5d4]/10 border border-[#00f5d4]/20 rounded-xl text-[#00f5d4] text-xs font-bold hover:bg-[#00f5d4]/20 transition-all hover:scale-105 active:scale-95"
+                  >
+                    <Save size={14} /> Save Preset
+                  </button>
+                )}
+              </div>
               {isLoaded && <TransformationLogic />}
             </>
           ) : (

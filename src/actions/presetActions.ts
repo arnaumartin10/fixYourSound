@@ -1,134 +1,106 @@
 "use server";
 
 import { auth } from "@/auth";
-import { createClient } from "@/utils/supabase/server";
+import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-
-function generateId() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
 
 export async function savePreset(name: string, category: string, data: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  const supabase = await createClient();
-  const id = generateId();
+  try {
+    const preset = await prisma.preset.create({
+      data: {
+        name,
+        category,
+        data,
+        userId: session.user.id,
+      },
+    });
 
-  const { data: preset, error } = await supabase
-    .from("presets")
-    .insert({
-      id,
-      name,
-      category,
-      data,
-      user_id: session.user.id
-    })
-    .select()
-    .single();
-
-  if (error) {
+    console.log("[savePreset] Success:", preset);
+    revalidatePath("/profile");
+    return preset;
+  } catch (error: any) {
     console.error("[savePreset] Error:", error);
-    throw new Error(error.message);
+    throw new Error(error.message || "Failed to save preset");
   }
-
-  if (!preset) {
-    throw new Error("Failed to create preset");
-  }
-
-  console.log("[savePreset] Success:", preset);
-
-  revalidatePath("/profile");
-  return preset;
 }
 
 export async function deletePreset(id: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  const supabase = await createClient();
+  try {
+    await prisma.preset.delete({
+      where: {
+        id,
+        userId: session.user.id,
+      },
+    });
 
-  const { error } = await supabase
-    .from("presets")
-    .delete()
-    .eq("id", id)
-    .eq("user_id", session.user.id);
-
-  if (error) {
+    revalidatePath("/profile");
+    return { success: true };
+  } catch (error: any) {
     console.error("[deletePreset] Error:", error);
-    throw new Error(error.message);
+    throw new Error(error.message || "Failed to delete preset");
   }
-
-  revalidatePath("/profile");
-  return { success: true };
 }
 
 export async function updatePreset(id: string, name: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  const supabase = await createClient();
+  try {
+    const preset = await prisma.preset.update({
+      where: {
+        id,
+        userId: session.user.id,
+      },
+      data: { name },
+    });
 
-  const { data: preset, error } = await supabase
-    .from("presets")
-    .update({ name })
-    .eq("id", id)
-    .eq("user_id", session.user.id)
-    .select()
-    .single();
-
-  if (error) {
+    revalidatePath("/profile");
+    return preset;
+  } catch (error: any) {
     console.error("[updatePreset] Error:", error);
-    throw new Error(error.message);
+    throw new Error(error.message || "Failed to update preset");
   }
-
-  revalidatePath("/profile");
-  return preset;
 }
 
 export async function updateUserProfile(name: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  const supabase = await createClient();
+  try {
+    const user = await prisma.user.update({
+      where: { id: session.user.id },
+      data: { name },
+    });
 
-  const { data: user, error } = await supabase
-    .from("users")
-    .update({ name })
-    .eq("id", session.user.id)
-    .select()
-    .single();
-
-  if (error) {
+    revalidatePath("/profile");
+    return user;
+  } catch (error: any) {
     console.error("[updateUserProfile] Error:", error);
-    throw new Error(error.message);
+    throw new Error(error.message || "Failed to update profile");
   }
-
-  revalidatePath("/profile");
-  return user;
 }
 
 export async function getPresetById(id: string) {
   const session = await auth();
   if (!session?.user?.id) throw new Error("Unauthorized");
 
-  const supabase = await createClient();
+  try {
+    const preset = await prisma.preset.findUnique({
+      where: {
+        id,
+        userId: session.user.id,
+      },
+    });
 
-  const { data: preset, error } = await supabase
-    .from("presets")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", session.user.id)
-    .single();
-
-  if (error) {
+    return preset;
+  } catch (error: any) {
     console.error("[getPresetById] Error:", error);
     return null;
   }
-
-  return preset;
 }

@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { createClient } from "@/utils/supabase/server";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -9,18 +9,14 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const supabase = await createClient();
-
-    const { data: presets, error } = await supabase
-      .from("presets")
-      .select("*")
-      .eq("user_id", session.user.id)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("[presets GET] Error:", error);
-      return NextResponse.json({ error: "Failed to fetch presets" }, { status: 500 });
-    }
+    const presets = await prisma.preset.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
     return NextResponse.json({ presets });
   } catch (error) {
