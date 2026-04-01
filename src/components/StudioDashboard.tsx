@@ -12,6 +12,7 @@ import { TransformationLogic } from "@/components/TransformationLogic";
 import { SavePresetModal } from "@/components/SavePresetModal";
 import { getPresetById } from "@/actions/presetActions";
 import { Save, Sparkles, Wand2 } from "lucide-react";
+import { HelpButton } from "@/components/HelpButton";
 
 export function StudioDashboard() {
   const searchParams = useSearchParams();
@@ -68,11 +69,25 @@ export function StudioDashboard() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl font-black text-white sm:text-4xl tracking-tighter">
-              FIX YOUR <span className="text-[#00f5d4] drop-shadow-[0_0_15px_rgba(0,245,212,0.3)]">SOUND</span>
+              PROMPTING <span className="text-[#00f5d4] drop-shadow-[0_0_15px_rgba(0,245,212,0.3)]">EFFECTS</span>
             </h1>
             <p className="mt-2 text-sm text-white/40 font-medium max-w-lg leading-relaxed">
-              Professional Semantic DSP Engine. Translate your creative intuition into high-fidelity audio engineering.
+              Describe a vibe and watch our AI translate it into real-time Digital Signal Processing. Learn exactly which filters, compressors, and saturators are needed.
             </p>
+            <div className="mt-4 flex items-center gap-4 text-xs">
+              <span className="flex items-center gap-1.5 text-white/30">
+                <span className="w-2 h-2 bg-[#00f5d4] rounded-full" />
+                Step 1: Upload audio
+              </span>
+              <span className="flex items-center gap-1.5 text-white/30">
+                <span className="w-2 h-2 bg-white/30 rounded-full" />
+                Step 2: Describe your vibe
+              </span>
+              <span className="flex items-center gap-1.5 text-white/30">
+                <span className="w-2 h-2 bg-white/30 rounded-full" />
+                Step 3: Learn the &quot;why&quot;
+              </span>
+            </div>
           </div>
         </div>
       </header>
@@ -149,6 +164,22 @@ export function StudioDashboard() {
           hideTriggerButton={true}
         />
       )}
+
+      <HelpButton 
+        toolName="Prompting Effects"
+        content={{
+          what: "Prompting Effects lets you transform any audio by describing the vibe you want. The AI applies real-time DSP chains to achieve effects like 'lo-fi', 'cinematic', 'underwater', etc.",
+          why: "Use it to quickly apply professional processing, learn signal flow, or get creative inspiration. The AI explains each processing decision so you understand the theory.",
+          how: "1. Upload an audio file (MP3, WAV)\n2. Wait for the waveform to load\n3. Type a vibe description like 'warm vintage' or 'crushing distortion'\n4. Click Apply to hear the result\n5. See the detailed explanation of what was done",
+          tips: [
+            "Use descriptive adjectives: 'warm', 'harsh', 'dark', 'bright'",
+            "Reference genres: 'lo-fi hip hop', 'cinematic', 'underwater'",
+            "Combine concepts: 'vintage vinyl with subtle saturation'",
+            "Start subtle, then go more extreme to hear differences"
+          ],
+          productionTip: "The AI applies actual DSP (EQ, compression, distortion, reverb). Use these learnings to configure plugins in your DAW. Many effects can be approximated with stock plugins!"
+        }}
+      />
     </main>
   );
 }

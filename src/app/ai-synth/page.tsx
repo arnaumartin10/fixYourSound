@@ -7,6 +7,7 @@ import { Sparkles, Send, Keyboard, Usb, Volume2, VolumeX, Waves, Sliders, Lightb
 import { useSearchParams } from "next/navigation";
 import { SavePresetModal } from "@/components/SavePresetModal";
 import { getPresetById } from "@/actions/presetActions";
+import { HelpButton } from "@/components/HelpButton";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
@@ -993,6 +994,22 @@ function AISynthPageContent() {
           </div>
         </div>
       </div>
+
+      <HelpButton 
+        toolName="AI Synth"
+        content={{
+          what: "AI Synth generates custom synthesizer and guitar patches based on your description. It creates playable sounds with adjustable parameters.",
+          why: "Use it to quickly prototype sounds, learn sound design by seeing the AI's reasoning, or get inspired by describing tones you might not know how to create manually.",
+          how: "1. Select Synth or Guitar mode\n2. Type a description like 'warm 80s pad' or 'crunchy guitar'\n3. Click Generate\n4. Play with keyboard or MIDI controller\n5. Adjust individual knobs to customize",
+          tips: [
+            "Be specific: 'warm analog bass' works better than 'good bass'",
+            "Reference artists or genres: 'Gilmour solo tone' or 'vaporwave synth'",
+            "Include adjectives: 'bright', 'dark', 'aggressive', 'mellow'",
+            "Mention vibe: 'nostalgic', 'cinematic', 'driving'"
+          ],
+          productionTip: "The AI explains why certain settings were chosen. Use this to learn sound design fundamentals. Copy the settings to your favorite VST (Serum, Massive, Omnisphere, etc.) in your DAW."
+        }}
+      />
     </div>
   );
 }

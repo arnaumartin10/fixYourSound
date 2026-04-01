@@ -8,6 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { PianoRoll } from "@/components/MelodyGenerator/PianoRoll";
 import { SavePresetModal } from "@/components/SavePresetModal";
 import { getPresetById } from "@/actions/presetActions";
+import { HelpButton } from "@/components/HelpButton";
 
 interface MelodyNote {
   pitch: string;
@@ -265,6 +266,20 @@ function MelodyGeneratorContent() {
         <p className="text-white/50 text-lg max-w-2xl mx-auto">
           Transform chord progressions into beautiful melodies with AI-powered composition
         </p>
+        <div className="mt-4 flex items-center justify-center gap-4 text-xs">
+          <span className="flex items-center gap-1.5 text-white/30">
+            <span className="w-2 h-2 bg-[#00f5d4] rounded-full" />
+            Step 1: Enter chords
+          </span>
+          <span className="flex items-center gap-1.5 text-white/30">
+            <span className="w-2 h-2 bg-white/30 rounded-full" />
+            Step 2: Select style & length
+          </span>
+          <span className="flex items-center gap-1.5 text-white/30">
+            <span className="w-2 h-2 bg-white/30 rounded-full" />
+            Step 3: Generate & play
+          </span>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
@@ -489,6 +504,22 @@ function MelodyGeneratorContent() {
           </AnimatePresence>
         </div>
       </div>
+
+      <HelpButton 
+        toolName="Melody Generator"
+        content={{
+          what: "Melody Generator creates lead melodies and basslines based on your chord progression. It composes original musical phrases that fit your harmonic context.",
+          why: "Use it to overcome writer's block, get melodic inspiration, or learn how melodies interact with chord progressions. Great for creating starting points you can refine.",
+          how: "1. Enter chord progression (e.g., Cmaj7 - Am7 - Dm7 - G7)\n2. Use presets for common progressions\n3. Select musical style (pop, jazz, classical, etc.)\n4. Choose length in bars\n5. Click Generate\n6. Use piano roll to visualize, play button to hear",
+          tips: [
+            "Use proper chord notation: Cmaj7, Am7, Dm, G for best results",
+            "Try different styles - jazz melodies differ from pop",
+            "The bassline complements your chords - use both views",
+            "Export MIDI to continue in your DAW"
+          ],
+          productionTip: "Generated melodies are starting points. Use the MIDI export to bring them into your DAW, then modify rhythms, add embellishments, or transpose to fit your song perfectly."
+        }}
+      />
     </div>
   );
 }

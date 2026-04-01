@@ -135,7 +135,7 @@ export default function LogIn() {
         </form>
 
         <p className="text-center text-white/50 text-sm">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/signup" className="text-[#00f5d4] font-bold hover:underline">
             Sign Up
           </Link>

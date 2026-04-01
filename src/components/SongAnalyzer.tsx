@@ -14,6 +14,7 @@ import {
   RotateCcw,
   Info,
 } from "lucide-react";
+import { HelpButton } from "@/components/HelpButton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface AnalysisResult {
@@ -479,6 +480,20 @@ export default function SongAnalyzer() {
             Upload any audio file to instantly reveal its BPM, Key, and Loudness. Use Tap Tempo to find the
             rhythm in your head, then get AI-powered producer insights tailored to your music.
           </p>
+          <div className="mt-4 flex items-center gap-4 text-xs">
+            <span className="flex items-center gap-1.5 text-white/30">
+              <span className="w-2 h-2 bg-[#00f5d4] rounded-full" />
+              Step 1: Upload audio
+            </span>
+            <span className="flex items-center gap-1.5 text-white/30">
+              <span className="w-2 h-2 bg-white/30 rounded-full" />
+              Step 2: View analysis
+            </span>
+            <span className="flex items-center gap-1.5 text-white/30">
+              <span className="w-2 h-2 bg-white/30 rounded-full" />
+              Step 3: Get AI tips
+            </span>
+          </div>
         </motion.div>
 
         <div className="grid lg:grid-cols-12 gap-8">
@@ -803,6 +818,22 @@ export default function SongAnalyzer() {
             </motion.div>
           </div>
         </div>
+
+        <HelpButton 
+          toolName="Song Analyzer"
+          content={{
+            what: "Song Analyzer decodes the technical DNA of any audio file. It detects BPM (tempo), Musical Key, Scale, and Loudness (peak/RMS) levels.",
+            why: "Use it to understand any track's fundamental properties. Essential for key matching, tempo synchronization, and understanding mixing decisions in reference tracks.",
+            how: "1. Drag & drop or click to upload an audio file\n2. Wait for analysis to complete\n3. View BPM, Key, Scale, and Loudness results\n4. Use Tap Tempo to find rhythm by tapping\n5. Click 'Generate Advice' for AI production tips",
+            tips: [
+              "Works with MP3, WAV, FLAC, and other common formats",
+              "Use Tap Tempo if you can't analyze a full file",
+              "The key detection uses chromagram analysis for accuracy",
+              "AI tips give genre-specific production advice"
+            ],
+            productionTip: "Match the detected key when writing melodies or choosing chord progressions. Use BPM as a starting point, adjust to fit your track. The loudness meter helps identify if you need compression or limiting."
+          }}
+        />
       </div>
     </div>
   );

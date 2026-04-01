@@ -31,6 +31,7 @@ import type { VoiceToNotesWorkerInit as WorkerInit } from "@/lib/voiceToNotes/ty
 import { useSearchParams } from "next/navigation";
 import { SavePresetModal } from "@/components/SavePresetModal";
 import { getPresetById } from "@/actions/presetActions";
+import { HelpButton } from "@/components/HelpButton";
 
 const ANALYSIS_BUFFER_SIZE_SAMPLES = 2048;
 const ANALYSIS_HOP_SIZE_SAMPLES = 256;
@@ -520,6 +521,20 @@ export function VoiceToNotesPro() {
                 Record or upload a melody. We detect the current note in real time,
                 then export a quantized MIDI track with pitch bends.
               </p>
+              <div className="mt-4 flex items-center gap-4 text-xs">
+                <span className="flex items-center gap-1.5 text-white/30">
+                  <span className="w-2 h-2 bg-[#00f5d4] rounded-full" />
+                  Step 1: Record or upload
+                </span>
+                <span className="flex items-center gap-1.5 text-white/30">
+                  <span className="w-2 h-2 bg-white/30 rounded-full" />
+                  Step 2: Detect notes
+                </span>
+                <span className="flex items-center gap-1.5 text-white/30">
+                  <span className="w-2 h-2 bg-white/30 rounded-full" />
+                  Step 3: Export MIDI
+                </span>
+              </div>
             </div>
 
             <div className="flex items-center gap-4">
@@ -837,6 +852,22 @@ export function VoiceToNotesPro() {
           </div>
         </section>
       </div>
+
+      <HelpButton 
+        toolName="Voice to Notes"
+        content={{
+          what: "Voice to Notes converts your sung or hummed melodies into precise MIDI data. Record via microphone or upload an audio file, and get quantized notes with pitch information.",
+          why: "Use it to capture melodic ideas quickly, transcribe vocals to MIDI for further production, or create melodic foundations from your voice.",
+          how: "1. Choose input method: Microphone or Audio File\n2. Click Record to capture live, or upload an audio file\n3. Wait for note detection to complete\n4. Review notes on piano roll\n5. Adjust quantization (8th or 16th notes)\n6. Export as MIDI file",
+          tips: [
+            "Sing clearly and on-pitch for best results",
+            "Use a consistent tempo - it helps with quantization",
+            "Review the detected notes and adjust quantization if needed",
+            "The piano roll shows exactly what will be exported"
+          ],
+          productionTip: "Export MIDI directly to your DAW. Use the notes as a starting point for melodies, lead synths, or vocal harmonies. The pitch data can guide melody writing even if you re-record with instruments."
+        }}
+      />
     </main>
   );
 }

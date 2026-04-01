@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { SavePresetModal } from "@/components/SavePresetModal";
 import { getPresetById } from "@/actions/presetActions";
+import { HelpButton } from "@/components/HelpButton";
 
 import { parseNotesFromChord } from "@/utils/chordParser";
 
@@ -91,6 +92,26 @@ function ChordArchitectContent() {
 
   return (
     <div className="container mx-auto px-6 py-12 max-w-7xl">
+      {/* Header with onboarding */}
+      <div className="text-center mb-10">
+        <h1 className="text-5xl font-black text-white mb-4 tracking-tighter">Chord Architect</h1>
+        <p className="text-white/50 text-lg max-w-2xl mx-auto">Bridge the gap between inspiration and theory. Generate professional chord progressions with explanations.</p>
+        <div className="mt-4 flex items-center justify-center gap-4 text-xs">
+          <span className="flex items-center gap-1.5 text-white/30">
+            <span className="w-2 h-2 bg-[#00f5d4] rounded-full" />
+            Step 1: Select key & scale
+          </span>
+          <span className="flex items-center gap-1.5 text-white/30">
+            <span className="w-2 h-2 bg-white/30 rounded-full" />
+            Step 2: Describe your vibe
+          </span>
+          <span className="flex items-center gap-1.5 text-white/30">
+            <span className="w-2 h-2 bg-white/30 rounded-full" />
+            Step 3: Explore progressions
+          </span>
+        </div>
+      </div>
+
       <div className="grid lg:grid-cols-12 gap-10">
         
         {/* Left Sidebar: Controls & List */}
@@ -248,6 +269,22 @@ function ChordArchitectContent() {
           onClose={() => setShowSaveModal(false)}
         />
       )}
+
+      <HelpButton 
+        toolName="Chord Architect"
+        content={{
+          what: "Chord Architect generates professional chord progressions based on your selected key/scale and desired vibe. It provides visual feedback on piano and guitar fretboard.",
+          why: "Use it to learn harmony, break out of familiar progressions, or quickly generate a harmonic foundation for your track. Great for beginners learning theory.",
+          how: "1. Select your musical key (e.g., C major, A minor)\n2. Choose a scale from the dropdown\n3. Enter a vibe (e.g., 'sad', 'uplifting', 'jazzy')\n4. Click Generate\n5. Use arrow keys to navigate through the progression\n6. View on piano/guitar visualization",
+          tips: [
+            "Start with your track's root key - match the key of your melody",
+            "Vibe descriptions work well: 'dark', 'happy', 'mysterious', 'dreamy'",
+            "Experiment with modes: Dorian for minor with major vibes, Lydian for dreamy",
+            "Use the guitar view to learn chord shapes and voicings"
+          ],
+          productionTip: "Chords provide the harmonic foundation. Use the generated progression as a starting point - transpose, modify voicings, or add passing chords. Great for building full songs in your DAW."
+        }}
+      />
     </div>
   );
 }

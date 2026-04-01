@@ -25,6 +25,7 @@ import {
 } from "@/lib/beatGenerator/SampleLoader";
 import { SavePresetModal } from "@/components/SavePresetModal";
 import { getPresetById } from "@/actions/presetActions";
+import { HelpButton } from "@/components/HelpButton";
 
 interface BeatTrack {
   instrument: string;
@@ -312,6 +313,20 @@ function BeatGeneratorContent() {
         <p className="text-white/50 text-lg max-w-2xl mx-auto">
           Generate AI-powered drum beats with a customizable 16-step sequencer
         </p>
+        <div className="mt-4 flex items-center justify-center gap-4 text-xs">
+          <span className="flex items-center gap-1.5 text-white/30">
+            <span className="w-2 h-2 bg-[#00f5d4] rounded-full" />
+            Step 1: Describe your beat
+          </span>
+          <span className="flex items-center gap-1.5 text-white/30">
+            <span className="w-2 h-2 bg-white/30 rounded-full" />
+            Step 2: Select kit & style
+          </span>
+          <span className="flex items-center gap-1.5 text-white/30">
+            <span className="w-2 h-2 bg-white/30 rounded-full" />
+            Step 3: Customize & play
+          </span>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
@@ -696,6 +711,22 @@ function BeatGeneratorContent() {
           </AnimatePresence>
         </div>
       </div>
+
+      <HelpButton 
+        toolName="Beat Generator"
+        content={{
+          what: "Beat Generator creates drum patterns using a 16-step sequencer. Describe a style (trap, house, techno) and the AI generates a beat with customizable tracks.",
+          why: "Use it to quickly generate drum patterns, explore different genres, or overcome creative blocks. Great foundation for any track.",
+          how: "1. Enter a prompt describing your desired beat\n2. Select drum kit (trap, house, acoustic, etc.)\n3. Choose number of bars (1, 2, or 4)\n4. Click Generate\n5. Toggle steps on/off in the grid\n6. Play the beat with spacebar or play button",
+          tips: [
+            "Be specific: 'dark trap beat with 808s' works better than 'good beat'",
+            "Try genre references: '90s hip hop boom bap', 'future bass drop'",
+            "Use the 16-step grid to customize after generation",
+            "Toggle individual steps to refine the pattern"
+          ],
+          productionTip: "Use generated beats as starting points. Export the MIDI or recreate in your DAW's drum sampler. Add your own fills and variations for unique productions."
+        }}
+      />
     </div>
   );
 }
