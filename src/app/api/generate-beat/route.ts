@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   try {
 
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite-preview" });
 
     const systemPrompt = `You are a professional music producer and beat maker. Generate drum beat patterns based on the user's request.
 

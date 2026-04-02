@@ -11,12 +11,17 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.55",
+    "@ai-sdk/groq": "^3.0.31",
+    "@ai-sdk/openai": "^3.0.49",
+    "@ai-sdk/react": "^3.0.144",
     "@auth/prisma-adapter": "^2.11.1",
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "^6.19.2",
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.101.0",
     "@tailwindcss/postcss": "^4.2.2",
+    "ai": "^6.0.142",
     "aubiojs": "^0.2.1",
     "bcryptjs": "^3.0.3",
     "framer-motion": "^12.38.0",
@@ -27,7 +32,8 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "tonal": "^6.4.3",
-    "tone": "^15.1.22"
+    "tone": "^15.1.22",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

@@ -88,7 +88,7 @@ export async function POST(request: Request) {
 
     try {
       const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
-      const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+      const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite-preview" });
 
       // Use the successful prompt concatenation strategy
       const result = await model.generateContent(`${SYSTEM_PROMPT}\n\nUser request: ${userPrompt}`);

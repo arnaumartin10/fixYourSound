@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     const scaleNotesStr = scaleNotes.join(", ");
 
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite-preview" });
 
     const prompt = `You are a professional music composition assistant. 
     Generate a sophisticated 4-chord progression based on the following:
@@ -83,7 +83,7 @@ export async function POST(req: Request) {
 
     const result = await model.generateContent(prompt);
     const text = result.response.text();
-    
+
     // Sanitize JSON response (handling potential markdown blocks)
     let cleaned = text;
     const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
     return NextResponse.json(data);
   } catch (error: any) {
     console.error("Chord Generation API Error:", error);
-    
+
     // FALLBACK CHORD PROGRESSION
     return NextResponse.json({
       progression: [
