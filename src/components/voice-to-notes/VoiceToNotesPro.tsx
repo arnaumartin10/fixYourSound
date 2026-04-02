@@ -25,6 +25,8 @@ import {
   PauseCircle,
   PlayCircle,
   Loader2,
+  Play,
+  Square,
 } from "lucide-react";
 import { clamp } from "@/lib/voiceToNotes/pitchUtils";
 import type { VoiceToNotesWorkerInit as WorkerInit } from "@/lib/voiceToNotes/types";
@@ -32,6 +34,7 @@ import { useSearchParams } from "next/navigation";
 import { SavePresetModal } from "@/components/SavePresetModal";
 import { getPresetById } from "@/actions/presetActions";
 import { HelpButton } from "@/components/HelpButton";
+import { useTonePlayback } from "@/hooks/useTonePlayback";
 
 const ANALYSIS_BUFFER_SIZE_SAMPLES = 2048;
 const ANALYSIS_HOP_SIZE_SAMPLES = 256;
@@ -86,6 +89,8 @@ export function VoiceToNotesPro() {
   const [quantization, setQuantization] = useState<VoiceToNotesQuantization>("16");
   const [pitchBendRangeSemis, setPitchBendRangeSemis] = useState(2);
   const [includeExpressionCC7, setIncludeExpressionCC7] = useState(true);
+
+  const { isPlaying, isLoading: isAudioLoading, playMelody, stopPlayback } = useTonePlayback({ type: "melody" });
 
   useEffect(() => {
     const loadPreset = async () => {
@@ -845,6 +850,41 @@ export function VoiceToNotesPro() {
             </section>
 
             <KeyDetectionCard segments={segments} />
+
+            {segments.length > 0 && (
+              <div className="flex justify-end">
+                <button
+                  onClick={() => {
+                    if (isPlaying) {
+                      stopPlayback();
+                    } else {
+                      const notes = segments.map(seg => ({
+                        pitch: Note.fromMidi(seg.midiInt) || "C4",
+                        startTime: seg.startTimeSec,
+                        duration: Math.max(0.1, seg.endTimeSec - seg.startTimeSec),
+                      }));
+                      playMelody(notes);
+                    }
+                  }}
+                  disabled={isAudioLoading}
+                  className="flex items-center gap-2 bg-[#00f5d4] text-black px-6 py-3 rounded-2xl font-black text-base transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(0,245,212,0.2)] disabled:opacity-50"
+                >
+                  {isAudioLoading ? (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-black border-t-transparent" />
+                  ) : isPlaying ? (
+                    <>
+                      <Square size={16} />
+                      Stop Playback
+                    </>
+                  ) : (
+                    <>
+                      <Play size={16} />
+                      Play Melody
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
 
             <MiniPianoRoll segments={segments} bpm={bpm} quantization={quantization} />
 

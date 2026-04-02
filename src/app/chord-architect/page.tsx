@@ -12,7 +12,9 @@ import {
   Layout, 
   Piano as PianoIcon, 
   Guitar as GuitarIcon,
-  Save 
+  Save,
+  Play,
+  Square
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "next/navigation";
@@ -21,6 +23,7 @@ import { getPresetById } from "@/actions/presetActions";
 import { HelpButton } from "@/components/HelpButton";
 
 import { parseNotesFromChord } from "@/utils/chordParser";
+import { useTonePlayback } from "@/hooks/useTonePlayback";
 
 const SCALES = [
   "C major", "G major", "D major", "A major", "E major", "B major", "F# major", "C# major",
@@ -44,6 +47,8 @@ function ChordArchitectContent() {
   const [strummingIdea, setStrummingIdea] = useState("");
   const [presetLoaded, setPresetLoaded] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
+
+  const { isPlaying, isLoading: isAudioLoading, playChords, stopPlayback, initAudio } = useTonePlayback({ type: "chord" });
 
   useEffect(() => {
     const loadPreset = async () => {
@@ -219,8 +224,39 @@ function ChordArchitectContent() {
                 )}
               </motion.div>
             )}
-          </AnimatePresence>
-        </aside>
+            </AnimatePresence>
+            
+            {progression.length > 0 && (
+              <div className="mt-6">
+                <button
+                  onClick={() => {
+                    if (isPlaying) {
+                      stopPlayback();
+                    } else {
+                      const chordNames = progression.map(p => p.chord);
+                      playChords(chordNames, 2);
+                    }
+                  }}
+                  disabled={isAudioLoading}
+                  className="w-full flex items-center justify-center gap-2 bg-brand-end text-black px-6 py-4 rounded-2xl font-black text-lg transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(255,107,53,0.3)] disabled:opacity-50"
+                >
+                  {isAudioLoading ? (
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-black border-t-transparent" />
+                  ) : isPlaying ? (
+                    <>
+                      <Square size={18} />
+                      Stop Playback
+                    </>
+                  ) : (
+                    <>
+                      <Play size={18} />
+                      Play Progression
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </aside>
 
         {/* Right Area: Visualizers */}
         <main className="lg:col-span-8 space-y-10">
