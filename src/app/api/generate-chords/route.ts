@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite-preview" });
 
     const prompt = `You are a professional music composition assistant. 
-    Generate a sophisticated 4-chord progression based on the following:
+    Generate 4 distinct variations of a 4-chord progression based on the following:
     Scale: ${scale}
     Scale Notes (AVAILABLE): ${scaleNotesStr}
     Vibe: ${vibe}
@@ -67,12 +67,16 @@ export async function POST(req: Request) {
 
     Return ONLY a JSON object with the following structure:
     {
-      "progression": [
-        { "chord": "Am7", "explanation": "Brief musical reason for this chord in the context of the vibe." },
-        ... (4 chords total)
-      ],
-      "scaleNotes": ["C", "D", "E", "F", "G", "A", "B"],
-      "strummingPatternIdea": "A descriptive strumming or rhythm pattern idea."
+      "options": [
+        {
+          "chords": [
+            { "chord": "Am7", "explanation": "Brief musical reason..." },
+            ... (4 chords total)
+          ],
+          "strummingIdea": "A descriptive strumming pattern idea."
+        },
+        ... (4 distinct variations total)
+      ]
     }
 
     Important Formatting Rules:
@@ -98,16 +102,29 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("Chord Generation API Error:", error);
 
-    // FALLBACK CHORD PROGRESSION
+    // FALLBACK CHORD PROGRESSIONS
     return NextResponse.json({
-      progression: [
-        { chord: "Cmaj7", explanation: "Home key, stable and bright." },
-        { chord: "Am7", explanation: "Relative minor, adding some soft melancholy." },
-        { chord: "Dm7", explanation: "Subdominant tension, preparing the cadence." },
-        { chord: "G7", explanation: "Dominant tension leading back to home." }
-      ],
-      scaleNotes: ["C", "D", "E", "F", "G", "A", "B"],
-      strummingPatternIdea: "A simple folk pattern: D D U U D U"
+      options: [
+        {
+          chords: [
+            { chord: "Cmaj7", explanation: "Home key, stable and bright." },
+            { chord: "Am7", explanation: "Relative minor, adding some soft melancholy." },
+            { chord: "Dm7", explanation: "Subdominant tension." },
+            { chord: "G7", explanation: "Dominant tension." }
+          ],
+          strummingIdea: "A simple folk pattern: D D U U D U"
+        },
+        {
+          chords: [
+            { chord: "Fmaj7", explanation: "Subdominant start for a floating feel." },
+            { chord: "G7", explanation: "Lifting movement." },
+            { chord: "Em7", explanation: "Introspective landing." },
+            { chord: "Am7", explanation: "Cycle back." }
+          ],
+          strummingIdea: "Slow ambient pads"
+        }
+      ]
     });
   }
 }
+

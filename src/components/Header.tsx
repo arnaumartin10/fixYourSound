@@ -14,6 +14,7 @@ const mainNavLinks = [
 ];
 
 const studioTools = [
+  { name: "Build a Song", href: "/build-a-song" },
   { name: "AI Synth", href: "/ai-synth" },
   { name: "Chord Architect", href: "/chord-architect" },
   { name: "Prompting Effects", href: "/prompting-effects" },
@@ -33,7 +34,7 @@ export const Header = () => {
 
   const isStudioToolActive = studioTools.some(tool => pathname === tool.href);
   const isLearningHubActive = pathname === "/learning-hub";
-  
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/5">
       <div className="container mx-auto px-6 h-16 flex items-center justify-between">
@@ -57,9 +58,8 @@ export const Header = () => {
               <div key={link.name} className="relative group/item">
                 <Link
                   href={link.href}
-                  className={`text-sm font-medium transition-all duration-300 ${
-                    isActive ? "text-[#00f5d4]" : "text-white/60 hover:text-white"
-                  }`}
+                  className={`text-sm font-medium transition-all duration-300 ${isActive ? "text-[#00f5d4]" : "text-white/60 hover:text-white"
+                    }`}
                 >
                   {link.name}
                   {isActive && (
@@ -80,9 +80,8 @@ export const Header = () => {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               onMouseEnter={() => setIsDropdownOpen(true)}
               onMouseLeave={() => setIsDropdownOpen(false)}
-              className={`flex items-center gap-2 text-sm font-medium transition-all duration-300 ${
-                isStudioToolActive ? "text-[#00f5d4]" : "text-white/60 hover:text-white"
-              }`}
+              className={`flex items-center gap-2 text-sm font-medium transition-all duration-300 ${isStudioToolActive ? "text-[#00f5d4]" : "text-white/60 hover:text-white"
+                }`}
             >
               <Music size={16} />
               Studio
@@ -115,11 +114,10 @@ export const Header = () => {
                         <Link
                           href={tool.href}
                           onClick={() => setIsDropdownOpen(false)}
-                          className={`flex items-center px-4 py-3 text-sm font-medium transition-all duration-200 border-l-2 ${
-                            isActive
+                          className={`flex items-center px-4 py-3 text-sm font-medium transition-all duration-200 border-l-2 ${isActive
                               ? "bg-[#00f5d4]/10 border-[#00f5d4] text-[#00f5d4]"
                               : "border-transparent text-white/70 hover:text-white hover:bg-white/5"
-                          }`}
+                            }`}
                         >
                           {tool.name}
                         </Link>
@@ -135,9 +133,8 @@ export const Header = () => {
           <div className="relative group/item">
             <Link
               href="/learning-hub"
-              className={`flex items-center gap-2 text-sm font-medium transition-all duration-300 ${
-                isLearningHubActive ? "text-[#00f5d4]" : "text-white/60 hover:text-white"
-              }`}
+              className={`flex items-center gap-2 text-sm font-medium transition-all duration-300 ${isLearningHubActive ? "text-[#00f5d4]" : "text-white/60 hover:text-white"
+                }`}
             >
               <BookOpen size={16} />
               Learning Hub
@@ -169,9 +166,8 @@ export const Header = () => {
                 ) : (
                   <Link
                     href={link.href}
-                    className={`text-sm font-medium transition-all duration-300 ${
-                      isActive ? "text-[#00f5d4]" : "text-white/60 hover:text-white"
-                    }`}
+                    className={`text-sm font-medium transition-all duration-300 ${isActive ? "text-[#00f5d4]" : "text-white/60 hover:text-white"
+                      }`}
                   >
                     {link.name}
                     {isActive && (
@@ -195,10 +191,10 @@ export const Header = () => {
               <Link href="/profile" className="flex items-center gap-3 group">
                 <span className="text-xs font-bold text-white/50 group-hover:text-white transition-colors">{session.user.name?.split(' ')[0] || "Profile"}</span>
                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#00f5d4] to-[#9d4edd] flex items-center justify-center text-black font-black text-sm overflow-hidden shadow-[0_0_15px_rgba(0,245,212,0.2)] group-hover:scale-105 transition-all">
-                    {session.user.image ? <img src={session.user.image} alt="User" className="w-full h-full object-cover" /> : session.user.name?.charAt(0) || session.user.email?.charAt(0) || "U"}
+                  {session.user.image ? <img src={session.user.image} alt="User" className="w-full h-full object-cover" /> : session.user.name?.charAt(0) || session.user.email?.charAt(0) || "U"}
                 </div>
               </Link>
-              <button 
+              <button
                 onClick={() => signOut({ callbackUrl: "/" })}
                 className="p-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-white/50 hover:text-white transition-all"
                 title="Log Out"
@@ -208,13 +204,13 @@ export const Header = () => {
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <Link 
+              <Link
                 href="/login"
                 className="px-5 py-2 rounded-full border border-white/20 text-white/80 hover:text-white hover:border-white/40 text-sm font-bold transition-all"
               >
                 Log In
               </Link>
-              <Link 
+              <Link
                 href="/signup"
                 className="px-5 py-2 rounded-full bg-[#00f5d4] text-black text-sm font-bold transition-all hover:bg-[#00d4aa] hover:shadow-[0_0_20px_rgba(0,245,212,0.4)]"
               >

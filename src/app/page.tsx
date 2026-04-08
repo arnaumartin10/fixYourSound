@@ -27,11 +27,18 @@ import {
   MessageSquare,
   Headphones,
   GitBranch,
-  ChevronDown
+  ChevronDown,
+  GraduationCap
 } from "lucide-react";
 import { useState } from "react";
 
 const tools = [
+  { 
+    name: "Build a Song ✨", 
+    href: "/build-a-song", 
+    icon: GraduationCap,
+    description: "Guided 5-stage song builder"
+  },
   { 
     name: "AI Synth", 
     href: "/ai-synth", 
@@ -259,6 +266,35 @@ export default function HomePage() {
               <h3 className="text-3xl font-black text-white mb-4">The Studio Suite</h3>
               <p className="text-white/50">Your complete toolkit for creative exploration</p>
             </div>
+
+            {/* Featured: Build a Song */}
+            <Link
+              href="/build-a-song"
+              className="group block mb-6 relative rounded-3xl overflow-hidden border border-[#9d4edd]/30 hover:border-[#9d4edd]/70 transition-all hover:shadow-[0_0_40px_rgba(157,78,237,0.15)]"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-[#0d0518] via-[#0a0a0a] to-[#0d1a14]" />
+              <div className="absolute top-0 right-0 w-72 h-72 bg-[#9d4edd]/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-56 h-56 bg-[#00f5d4]/5 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative z-10 p-8 flex flex-col md:flex-row items-start md:items-center gap-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-[#9d4edd] to-[#00f5d4] rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(157,78,237,0.4)]">
+                  <GraduationCap size={30} className="text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h4 className="text-2xl font-black text-white group-hover:text-[#00f5d4] transition-colors tracking-tighter">
+                      Let&apos;s Build a Song
+                    </h4>
+                    <span className="px-2 py-1 bg-[#9d4edd] text-white text-[10px] font-black uppercase tracking-widest rounded-lg">NEW</span>
+                  </div>
+                  <p className="text-white/50 max-w-xl">
+                    A guided 5-stage journey with your AI teacher <span className="text-[#9d4edd] font-bold">Maestro</span>. Build a complete 8-bar loop — from genre to sound design — learning music production step by step.
+                  </p>
+                  <div className="mt-4 flex items-center gap-2 text-[#9d4edd] text-sm font-bold">
+                    Start Building <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </div>
+            </Link>
 
             <div className="grid md:grid-cols-3 gap-6">
               {/* Pillar 1: Song Analyzer */}

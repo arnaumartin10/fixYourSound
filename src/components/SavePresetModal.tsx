@@ -8,7 +8,7 @@ import { savePreset } from "@/actions/presetActions";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SavePresetModalProps {
-  category: "SYNTH" | "GUITAR" | "FX" | "CHORD" | "VOICE" | "MELODY" | "BEAT";
+  category: "SYNTH" | "GUITAR" | "FX" | "CHORD" | "VOICE" | "MELODY" | "BEAT" | "SONG";
   getData: () => any;
   isOpen?: boolean;
   onClose?: () => void;

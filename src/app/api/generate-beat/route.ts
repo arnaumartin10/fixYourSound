@@ -47,74 +47,48 @@ export async function POST(req: Request) {
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
     const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite-preview" });
 
-    const systemPrompt = `You are a professional music producer and beat maker. Generate drum beat patterns based on the user's request.
+    const systemPrompt = `You are a professional music producer and beat maker. Generate 4 distinct drum beat variations based on the user's request.
 
 USER HAS SELECTED: "${drumKit}" DRUM KIT
-GENERATE: ${totalSteps}-step drum beat pattern (${bars} bar${bars > 1 ? "s" : ""})
+GENERATE: ${totalSteps}-step drum beat patterns (${bars} bar${bars > 1 ? "s" : ""})
 
-DRUM KIT CHARACTERISTICS - Tailor your rhythm accordingly:
-- "rock": Punchy acoustic-style kick, powerful snare on 2 & 4, driving hi-hat pattern
-- "pop": Balanced, radio-friendly sound, groovy offbeat snares, consistent hi-hats
-- "electronic": Clean 909/808 hybrid sounds, tight programming, modern feel  
-- "latino": Dembow-influenced patterns, tight high-pitched kicks, tight snare hits and ghost notes
-- "rap-trap": 808 bass drops with pitch slides, crisp snares, rapid hi-hat rolls/tremolos
+DRUM KIT CHARACTERISTICS:
+- "rock": Punchy acoustic kick, snare on 2 & 4.
+- "pop": Radio-friendly, groovy offbeat snares.
+- "electronic": Tight programming, modern feel.
+- "latino": Dembow-influenced, syncopated.
+- "rap-trap": 808 bass drops, rapid hi-hat rolls.
 
-RHYTHM REQUIREMENTS:
-- Generate EXACTLY ${totalSteps} boolean values per track (16 steps x ${bars} bar${bars > 1 ? "s" : ""})
-- For ${bars > 1 ? "multi-bar patterns: introduce variations, fills, and syncopations across measures" : "single bar: keep it tight and punchy"}
-- Avoid robotic repetition${bars > 1 ? " - use fills, accent patterns, and dynamic changes" : ""}
-- ${bars >= 2 ? "Add intensity ramps or drum fills at the end of measure 2" + (bars === 4 ? " and measure 4" : "") : ""}
-
-INTENSITY & COMPLEXITY:
-- Intensity (1-100): Higher = more hits, busier patterns. Lower = sparse, minimal.
-- Complexity (1-100): Higher = syncopation, polyrhythms, offbeats. Lower = straight 4/4.
-
-Return ONLY valid JSON with this exact structure:
+Return ONLY a JSON object with this structure:
 {
-  "explanation": "Brief description of the groove, feel, and why it matches the requested drum kit and parameters.",
-  "tempo": 120,
-  "kitType": "house",
-  "tracks": [
+  "options": [
     {
-      "instrument": "Kick",
-      "steps": [true, false, true, ... (exactly ${totalSteps} booleans)]
+      "explanation": "Brief description of this variation...",
+      "tempo": 120,
+      "kitType": "house",
+      "tracks": [
+        { "instrument": "Kick", "steps": [true, false, ...] },
+        ... (Exactly 4 tracks: Kick, Snare, ClosedHat, OpenHat)
+      ]
     },
-    {
-      "instrument": "Snare",
-      "steps": [false, false, false, ... (exactly ${totalSteps} booleans)]
-    },
-    {
-      "instrument": "ClosedHat",
-      "steps": [true, true, false, ... (exactly ${totalSteps} booleans)]
-    },
-    {
-      "instrument": "OpenHat",
-      "steps": [false, false, false, ... (exactly ${totalSteps} booleans)]
-    }
+    ... (4 variations total)
   ]
 }
 
-CRITICAL:
-1. Each track's steps array MUST have EXACTLY ${totalSteps} boolean values
-2. Include kitType based on the user's genre prompt (auto-detect: trap, house, acoustic, dnb, techno, funk)
-3. Return ONLY valid JSON, no markdown or explanations
-4. Tempo range: 80-180 BPM (appropriate for the vibe)`;
+CRITICAL: 
+1. Each track's steps array MUST have EXACTLY ${totalSteps} booleans.
+2. Return ONLY raw JSON.`;
 
-    const userPrompt = `Create a ${bars}-bar beat with these parameters:
-- Drum Kit Selected: ${drumKit}
+    const userPrompt = `Create 4 variations for a ${bars}-bar beat:
+- Drum Kit: ${drumKit}
 - Genre/Vibe: ${prompt}
 - Intensity: ${intensity}/100
-- Complexity: ${complexity}/100
+- Complexity: ${complexity}/100`;
 
-Generate exactly ${totalSteps} steps per instrument. Return ONLY the JSON.`;
-
-    const result = await model.generateContent(
-      systemPrompt + "\n\n" + userPrompt
-    );
-
+    const result = await model.generateContent(systemPrompt + "\n\n" + userPrompt);
     const text = result.response.text();
 
-    // Sanitize JSON response
+    // Sanitize JSON
     let cleaned = text.trim();
     const match = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (match) {
@@ -123,99 +97,41 @@ Generate exactly ${totalSteps} steps per instrument. Return ONLY the JSON.`;
       cleaned = text.replace(/```(?:json)?/gi, "").replace(/```/g, "").trim();
     }
 
-    const data: BeatResponse = JSON.parse(cleaned);
+    const data = JSON.parse(cleaned);
 
-    // Validate response structure
-    if (
-      !data.explanation ||
-      typeof data.tempo !== "number" ||
-      !data.kitType ||
-      !Array.isArray(data.tracks)
-    ) {
-      throw new Error("Invalid response structure from LLM");
-    }
-
-    // Validate kitType if provided
-    if (data.kitType) {
-      const validKitTypes = ["trap", "house", "acoustic", "dnb", "techno", "funk"];
-      if (!validKitTypes.includes(data.kitType)) {
-        data.kitType = "house"; // Default to house
-      }
-    }
-
-    // Validate each track has exactly totalSteps steps
-    for (const track of data.tracks) {
-      if (!track.instrument || !Array.isArray(track.steps) || track.steps.length !== totalSteps) {
-        throw new Error(`Invalid track "${track.instrument}": must have exactly ${totalSteps} steps`);
-      }
-      // Ensure all steps are booleans
-      track.steps = track.steps.map(step => Boolean(step));
-    }
-
-    // Ensure we have the 4 required instruments
-    const requiredInstruments = ["Kick", "Snare", "ClosedHat", "OpenHat"];
-    const existingInstruments = data.tracks.map(t => t.instrument);
-    const missingInstruments = requiredInstruments.filter(
-      inst => !existingInstruments.includes(inst)
-    );
-
-    if (missingInstruments.length > 0) {
-      // Add missing instruments with empty patterns
-      for (const inst of missingInstruments) {
-        data.tracks.push({
-          instrument: inst,
-          steps: Array(totalSteps).fill(false),
+    // Validate each option
+    if (data.options && Array.isArray(data.options)) {
+      data.options = data.options.map((opt: any) => {
+        // Ensure 4 tracks exist
+        const required = ["Kick", "Snare", "ClosedHat", "OpenHat"];
+        const tracks = opt.tracks || [];
+        required.forEach(inst => {
+           if (!tracks.find((t: any) => t.instrument === inst)) {
+             tracks.push({ instrument: inst, steps: Array(totalSteps).fill(false) });
+           }
         });
-      }
+        return { ...opt, tracks: tracks.slice(0, 4) };
+      });
     }
-
-    // Reorder tracks to match expected order
-    const trackOrder = ["Kick", "Snare", "ClosedHat", "OpenHat"];
-    data.tracks.sort((a, b) => trackOrder.indexOf(a.instrument) - trackOrder.indexOf(b.instrument));
-
-    // Add drumKit and bars to response
-    data.drumKit = drumKit as any;
-    data.bars = bars as any;
 
     return NextResponse.json(data);
   } catch (error: any) {
     console.error("Beat Generation API Error:", error);
-
-    // FALLBACK BEAT
-    const fallbackBeat: BeatResponse = {
-      explanation:
-        "A classic four-on-the-floor beat with snare on 2 and 4, closed hats on every eighth note, and occasional open hats for groove.",
-      tempo: 120,
-      drumKit: drumKit,
-      bars: bars,
-      tracks: [
+    return NextResponse.json({
+      options: [
         {
-          instrument: "Kick",
-          steps: Array(totalSteps)
-            .fill(null)
-            .map((_, i) => i % 4 === 0 || (bars >= 2 && i % 8 === 4)),
-        },
-        {
-          instrument: "Snare",
-          steps: Array(totalSteps)
-            .fill(null)
-            .map((_, i) => i % 8 === 4 || i % 8 === 12),
-        },
-        {
-          instrument: "ClosedHat",
-          steps: Array(totalSteps)
-            .fill(null)
-            .map(() => true),
-        },
-        {
-          instrument: "OpenHat",
-          steps: Array(totalSteps)
-            .fill(null)
-            .map((_, i) => i % 8 === 7),
-        },
-      ],
-    };
-
-    return NextResponse.json(fallbackBeat);
+          explanation: "Fallback basic beat",
+          tempo: 120,
+          kitType: "house",
+          tracks: [
+            { instrument: "Kick", steps: Array(totalSteps).fill(false).map((_, i) => i % 4 === 0) },
+            { instrument: "Snare", steps: Array(totalSteps).fill(false).map((_, i) => i % 8 === 4) },
+            { instrument: "ClosedHat", steps: Array(totalSteps).fill(true) },
+            { instrument: "OpenHat", steps: Array(totalSteps).fill(false) }
+          ]
+        }
+      ]
+    });
   }
 }
+

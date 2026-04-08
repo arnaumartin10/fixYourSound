@@ -175,7 +175,7 @@ function clamp(value: number, min: number, max: number) {
 async function callGemini(systemPrompt: string, userPrompt: string, defaultResponse: object): Promise<object | string> {
   try {
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite-preview" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
     const result = await model.generateContent(`${systemPrompt}\n\nUser request: ${userPrompt}`);
     return result.response.text();
   } catch (apiError: any) {
@@ -215,31 +215,42 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Prompt is required." }, { status: 400 });
     }
 
-    const systemPrompt = mode === "guitar" ? GUITAR_SYSTEM_PROMPT : SYNTH_SYSTEM_PROMPT;
-    const defaultResponse = mode === "guitar" ? DEFAULT_GUITAR_RESPONSE : DEFAULT_SYNTH_RESPONSE;
-    const sanitize = mode === "guitar" ? sanitizeGuitar : sanitizeSynth;
+    const systemPromptPrefix = `You are a professional Sound Designer. Generate 4 distinct variations for the requested sound.
+Return ONLY a JSON object with this structure:
+{
+  "options": [
+    { ...synth parameters... },
+    ... (4 variations total)
+  ]
+}`;
 
-    const result = await callGemini(systemPrompt, userPrompt, defaultResponse);
+    const systemPrompt = mode === "guitar" 
+      ? `${systemPromptPrefix}\n\n${GUITAR_SYSTEM_PROMPT}`
+      : `${systemPromptPrefix}\n\n${SYNTH_SYSTEM_PROMPT}`;
 
-    // If callGemini returned the default object directly (API error fallback), use it
+    const result = await callGemini(systemPrompt, userPrompt, {});
+
     if (typeof result !== "string") {
-      return NextResponse.json({ ...result, explanation: (result as any).explanation ?? "AI unavailable — using fallback preset." });
+       return NextResponse.json({ options: [mode === "guitar" ? DEFAULT_GUITAR_RESPONSE : DEFAULT_SYNTH_RESPONSE] });
     }
-
-    if (!result) return NextResponse.json(defaultResponse);
 
     try {
       const parsed = extractJSON(result);
-      return NextResponse.json(sanitize(parsed));
+      if (parsed.options && Array.isArray(parsed.options)) {
+        const sanitize = mode === "guitar" ? sanitizeGuitar : sanitizeSynth;
+        return NextResponse.json({
+          options: parsed.options.map((o: any) => sanitize(o))
+        });
+      }
+      throw new Error("Invalid options format");
     } catch (parseError) {
-      console.error("JSON Parse Error:", parseError, "Content:", result);
-      return NextResponse.json(defaultResponse);
+      console.error("JSON Parse Error:", parseError);
+      return NextResponse.json({ options: [mode === "guitar" ? DEFAULT_GUITAR_RESPONSE : DEFAULT_SYNTH_RESPONSE] });
     }
   } catch (error) {
-    // Last-resort catch — always return a usable default, never a raw 500
     console.error("AI Synth route error:", error);
-    const defaultResponse = mode === "guitar" ? DEFAULT_GUITAR_RESPONSE : DEFAULT_SYNTH_RESPONSE;
-    return NextResponse.json({ ...defaultResponse, explanation: "An unexpected error occurred. Using safe default preset." });
+    return NextResponse.json({ options: [] });
   }
 }
+
 

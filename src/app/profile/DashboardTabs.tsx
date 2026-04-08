@@ -48,7 +48,8 @@ export function DashboardTabs({ presets, user, initialTab, onSettingsClick, isSe
     { id: "CHORD", label: "Chord Banks", icon: Layers },
     { id: "VOICE", label: "Vocal Notes", icon: Mic },
     { id: "MELODY", label: "Melodies", icon: Sparkles },
-    { id: "BEAT", label: "Beat Packs", icon: Zap }
+    { id: "BEAT", label: "Beat Packs", icon: Zap },
+    { id: "SONG", label: "My Songs", icon: Music }
   ];
   
   const activePresets = presets.filter(p => p.category === activeTab);
@@ -80,9 +81,13 @@ export function DashboardTabs({ presets, user, initialTab, onSettingsClick, isSe
       case "BEAT":
         url = "/beat-generator";
         break;
+      case "SONG":
+        url = "/build-a-song";
+        break;
       default:
         url = "/ai-synth";
     }
+
     
     const separator = url.includes('?') ? '&' : '?';
     router.push(`${url}${separator}presetId=${preset.id}`);
