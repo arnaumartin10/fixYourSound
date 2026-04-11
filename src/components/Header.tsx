@@ -8,12 +8,12 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import { ChevronDown, Music, BookOpen, LogOut } from "lucide-react";
 import { useState } from "react";
 
-const mainNavLinks = [
+const mainNavLinks: { name: string; href: string; wip?: boolean }[] = [
   { name: "Home", href: "/" },
   { name: "Song Analyzer", href: "/song-analyzer" },
 ];
 
-const studioTools = [
+const studioTools: { name: string; href: string; wip?: boolean; icon?: any; description?: string }[] = [
   { name: "AI Synth", href: "/ai-synth" },
   { name: "Chord Architect", href: "/chord-architect" },
   { name: "Prompting Effects", href: "/prompting-effects" },
@@ -22,7 +22,7 @@ const studioTools = [
   { name: "Beat Generator", href: "/beat-generator" },
 ];
 
-const commonLinks = [
+const commonLinks: { name: string; href: string; wip?: boolean }[] = [
   { name: "Community", href: "/community" },
 ];
 
