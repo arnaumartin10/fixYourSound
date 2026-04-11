@@ -51,6 +51,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   presets       Preset[]
+  messages      CommunityMessage[]
  
   @@map("users")
 }
@@ -76,4 +77,36 @@ model Preset {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("presets")
+}
+
+model Community {
+  id          String   @id @default(cuid())
+  name        String   // "General", "Songs/Projects", "Plugins/Presets", "Tips & Tricks"
+  icon        String?  // Emoji or icon identifier
+  language    String   @default("en") // "en" or "es"
+  description String?
+  messages    CommunityMessage[]
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@unique([name, language])
+  @@map("communities")
+}
+
+model CommunityMessage {
+  id              String   @id @default(cuid())
+  content         String
+  userId          String?  @map("user_id") // Optional for system messages
+  communityId     String   @map("community_id")
+  isSystemMessage Boolean  @default(false) @map("is_system_message")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt      @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at") // Soft delete
+
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  community       Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@map("community_messages")
+  @@index([communityId])
+  @@index([userId])
+  @@index([createdAt])
 }

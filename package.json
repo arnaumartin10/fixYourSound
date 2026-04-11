@@ -24,6 +24,7 @@
     "ai": "^6.0.142",
     "aubiojs": "^0.2.1",
     "bcryptjs": "^3.0.3",
+    "date-fns": "^4.1.0",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.0.1",
     "midi-writer-js": "^3.2.1",
