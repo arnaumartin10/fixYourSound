@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
 
     try {
       const { text } = await generateText({
-        model: google("gemini-2.0-flash"),
+        model: google("gemini-3.1-flash-lite-preview"),
         prompt: buildPrompt(topic),
         maxOutputTokens: 700,
         temperature: 0.85,
