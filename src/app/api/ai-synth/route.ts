@@ -175,7 +175,7 @@ function clamp(value: number, min: number, max: number) {
 async function callGemini(systemPrompt: string, userPrompt: string, defaultResponse: object): Promise<object | string> {
   try {
     const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite-preview" });
     const result = await model.generateContent(`${systemPrompt}\n\nUser request: ${userPrompt}`);
     return result.response.text();
   } catch (apiError: any) {
